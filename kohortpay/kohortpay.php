@@ -52,9 +52,9 @@ class Kohortpay extends PaymentModule
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall KohortPay ?');
 
-        $this->limited_countries = array('FR');
+        $this->limited_countries = array('FR', 'US');
 
-        $this->limited_currencies = array('EUR');
+        $this->limited_currencies = array('EUR', 'USD');
 
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
@@ -253,8 +253,8 @@ class Kohortpay extends PaymentModule
             return;
         }
         $option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-        $option->setCallToActionText($this->l('Pay offline'))
-            ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true));
+        $option->setCallToActionText($this->l('Pay with KohortPay'))
+            ->setAction($this->context->link->getModuleLink($this->name, 'redirect', array(), true));
 
         return [
             $option
