@@ -41,7 +41,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
                 'secure_key' => Context::getContext()->customer->secure_key,
             ));
 
-            return $this->setTemplate('redirect.tpl');
+            return $this->setTemplate('module:kohortpay/views/templates/front/redirect.tpl');
         }
     }
 

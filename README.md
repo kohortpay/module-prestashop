@@ -7,6 +7,7 @@
   - [Overview](#overview)
     - [Description](#description)
     - [Features](#features)
+    - [Compabilities](#compabilities)
   - [Installation](#installation)
     - [Using Prestashop admin](#using-prestashop-admin)
     - [Using Symfony CLI](#using-symfony-cli)
@@ -31,11 +32,15 @@ xxxxxx
 - XX
 - YYY
 
+### Compabilities
+**Important**: This is working 
+
 ## Installation
 
 ### Using Prestashop admin
+
 1. Connect to your admin
-2. 
+2.
 
 ### Using Symfony CLI
 
@@ -58,9 +63,10 @@ If you want to test or make a demo of the KohortPay module on a fresh Prestashop
   - [Windows install instruction](https://docs.docker.com/desktop/install/windows-install/)
 - Docker Compose : Installation link
 
-### Test steps 
+### Test steps
 
-#### Start Prestashop on your local machine 
+#### Start Prestashop on your local machine
+
 1. Start your Docker desktop application: [More info](https://www.docker.com/blog/getting-started-with-docker-desktop/)
 2. Clone the repository and go inside the directory:
    ```
@@ -71,13 +77,14 @@ If you want to test or make a demo of the KohortPay module on a fresh Prestashop
    ```
    docker-compose up -d
    ```
-4. Visit [http://localhost/](http://localhost/)
+4. Wait 30 seconds (docker starting), then visit [http://localhost/](http://localhost/)
 
-#### Install the module 
+#### Install the module
+
 1. By Dashboard
    1. Go to local/admi
-   2. log init with crenditial()
-   3. Go to 
+   2. log init with crenditial (Login: user@example.com, Password : bitnami1)
+   3. Go to
    4. Click on upload and select kohortpayZip
    5. Enable
-2. By CLI 
+2. By CLI

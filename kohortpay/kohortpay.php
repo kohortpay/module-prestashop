@@ -254,6 +254,7 @@ class Kohortpay extends PaymentModule
         }
         $option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
         $option->setCallToActionText($this->l('Pay with KohortPay'))
+            ->setAdditionalInformation($this->l('Pay less, together. Invite your friend and save money until 20% on your order.'))
             ->setAction($this->context->link->getModuleLink($this->name, 'redirect', array(), true));
 
         return [
