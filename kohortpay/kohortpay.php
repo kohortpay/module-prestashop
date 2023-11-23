@@ -18,7 +18,7 @@
 * versions in the future. If you wish to customize PrestaShop for your
 * needs please refer to http://www.prestashop.com for more information.
 *
-*  @author    PrestaShop SA <contact@prestashop.com>
+*  @author    KohortPay <contact@kohortpay.com>
 *  @copyright 2007-2023 PrestaShop SA
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
@@ -36,7 +36,7 @@ class Kohortpay extends PaymentModule
     {
         $this->name = 'kohortpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '0.1.0';
         $this->author = 'KohortPay';
         $this->need_instance = 0;
 
@@ -173,17 +173,10 @@ class Kohortpay extends PaymentModule
                         ),
                     ),
                     array(
-                        'col' => 3,
-                        'type' => 'text',
-                        'prefix' => '<i class="icon icon-envelope"></i>',
-                        'desc' => $this->l('Enter a valid email address'),
-                        'name' => 'KOHORTPAY_ACCOUNT_EMAIL',
-                        'label' => $this->l('Email'),
-                    ),
-                    array(
                         'type' => 'password',
-                        'name' => 'KOHORTPAY_ACCOUNT_PASSWORD',
-                        'label' => $this->l('Password'),
+                        'name' => 'KOHORTPAY_API_SECRET_KEY',
+                        'label' => $this->l('API Secret Key'),
+                        'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with sk_'),
                     ),
                 ),
                 'submit' => array(
@@ -200,8 +193,7 @@ class Kohortpay extends PaymentModule
     {
         return array(
             'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', true),
-            'KOHORTPAY_ACCOUNT_EMAIL' => Configuration::get('KOHORTPAY_ACCOUNT_EMAIL', 'contact@prestashop.com'),
-            'KOHORTPAY_ACCOUNT_PASSWORD' => Configuration::get('KOHORTPAY_ACCOUNT_PASSWORD', null),
+            'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
         );
     }
 
