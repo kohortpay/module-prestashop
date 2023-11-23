@@ -50,9 +50,7 @@ class Kohortpay extends PaymentModule
 
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall KohortPay ?');
 
-        $this->limited_countries = array('FR', 'US');
-
-        $this->limited_currencies = array('EUR', 'USD');
+        $this->limited_currencies = array('EUR');
 
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
@@ -66,14 +64,6 @@ class Kohortpay extends PaymentModule
         if (extension_loaded('curl') == false)
         {
             $this->_errors[] = $this->l('You have to enable the cURL extension on your server to install this module');
-            return false;
-        }
-
-        $iso_code = Country::getIsoById(Configuration::get('PS_COUNTRY_DEFAULT'));
-
-        if (in_array($iso_code, $this->limited_countries) == false)
-        {
-            $this->_errors[] = $this->l('This module is not available in your country');
             return false;
         }
 

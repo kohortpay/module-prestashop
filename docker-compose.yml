@@ -29,7 +29,6 @@ services:
     volumes:
       - "prestashop_data:/bitnami/prestashop"
       - "./httpd.conf:/opt/bitnami/apache/conf/httpd.conf"
-      # Uncomment the line only for development.
       - "./kohortpay:/bitnami/prestashop/modules/kohortpay"
     depends_on:
       - mariadb
