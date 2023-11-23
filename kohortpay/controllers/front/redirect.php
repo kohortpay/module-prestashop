@@ -1,83 +1,42 @@
 <?php
-
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Client;
 
 /**
- * 2007-2023 PrestaShop
+ * 2022-2024 KohortPay
  *
- * NOTICE OF LICENSE
+ * THE MIT LICENSE
  *
- * This source file is subject to the Academic Free License (AFL 3.0)
- * that is bundled with this package in the file LICENSE.txt.
- * It is also available through the world-wide-web at this URL:
- * http://opensource.org/licenses/afl-3.0.php
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and
+ * to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  *
- * DISCLAIMER
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to http://www.prestashop.com for more information.
- *
- *  @author    KohortPay <contact@kohortpay.com>
- *  @copyright 2007-2023 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
- *  International Registered Trademark & Property of PrestaShop SA
+ * @author    KohortPay <contact@kohortpay.com>
+ * @copyright 2022-2024 KohortPay
+ * @license   https://opensource.org/licenses/MIT The MIT License
  */
 class KohortpayRedirectModuleFrontController extends ModuleFrontController
 {
     /**
-     * Do whatever you have to before redirecting the customer on the website of your payment processor.
+     * Make POST call to KohortPay API to generate checkout session and then redirect customer to the payment page.
      */
     public function postProcess()
     {
-        $languageCode = explode('-', Context::getContext()->language->language_code);
-        $json['locale'] = $languageCode[0] . '_' . strtoupper($languageCode[1]);
-
-        $json['successUrl'] = $this->context->link->getModuleLink('kohortpay', 'confirmation', array('action' => 'success', 'cart_id' => Context::getContext()->cart->id, 'secure_key' => Context::getContext()->customer->secure_key));
-
-
-        $json['websiteOrderURL'] = Configuration::get('PS_SHOP_DOMAIN');
-
-        $json['amountTotal'] = Context::getContext()->cart->getOrderTotal() * 100;
-        $json['lineItems'] = array();
-        foreach (Context::getContext()->cart->getProducts() as $product) {
-            $json['lineItems'][] = array(
-                'name' => $product['name'],
-                'price' => $product['price'] * 100,
-                'quantity' => $product['cart_quantity'],
-                'type' => 'PRODUCT',
-                'image_url' => $this->context->link->getImageLink($product['link_rewrite'], $product['id_image'], 'home_default'),
-            );
-        }
-        foreach (Context::getContext()->cart->getCartRules() as $cartRule) {
-            $json['lineItems'][] = array(
-                'name' => $cartRule['name'],
-                'price' => $cartRule['value_real'] * -100,
-                'quantity' => 1,
-                'type' => 'DISCOUNT',
-            );
-        }
-        $json['lineItems'][] = array(
-            'name' => 'Shipping',
-            'price' => Context::getContext()->cart->getTotalShippingCost() * 100,
-            'quantity' => 1,
-            'type' => 'SHIPPING',
-        );
-
-        $json['customerFirstName'] = Context::getContext()->customer->firstname;
-        $json['customerLastName'] = Context::getContext()->customer->lastname;
-        $json['customerEmail'] = Context::getContext()->customer->email;
-
         $client = new Client();
         try {
             $response = $client->post(
                 "https://api.kohortpay.dev/checkout-sessions/",
                 [
-                    'json' => $json,
+                    'json' => $this->getCheckoutSessionJson(),
                     'auth' => [
                         Configuration::get('KOHORTPAY_API_SECRET_KEY'),
                         ''
@@ -100,26 +59,71 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
             }
             return $this->displayError($this->module->l('An error occurred while trying to redirect the customer. Please contact the merchant to have more informations'));
         }
-
-        die();
-
-        /*
-         * Oops, an error occured.
-         */
-        if (Tools::getValue('action') == 'error') {
-            return $this->displayError('An error occurred while trying to redirect the customer');
-        } else {
-            $this->context->smarty->assign(
-                array(
-                    'cart_id' => Context::getContext()->cart->id,
-                    'secure_key' => Context::getContext()->customer->secure_key,
-                )
-            );
-
-            return $this->setTemplate('module:kohortpay/views/templates/front/redirect.tpl');
-        }
     }
 
+    /**
+     * Build and get checkout session JSON object to send to the API.
+     */
+    protected function getCheckoutSessionJson()
+    {
+        // Customer information
+        $json['customerFirstName'] = Context::getContext()->customer->firstname;
+        $json['customerLastName'] = Context::getContext()->customer->lastname;
+        $json['customerEmail'] = Context::getContext()->customer->email;
+
+        // Return URLs
+        $json['successUrl'] = $this->context->link->getModuleLink('kohortpay', 'confirmation', array('action' => 'success', 'cart_id' => Context::getContext()->cart->id, 'secure_key' => Context::getContext()->customer->secure_key));
+        $json['cancelUrl'] = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'index.php?controller=order&step=1';
+
+        // Locale & currency
+        $languageCode = explode('-', Context::getContext()->language->language_code);
+        $json['locale'] = $languageCode[0] . '_' . strtoupper($languageCode[1]);
+        //$json['currency'] = Context::getContext()->currency->iso_code;
+
+        // Order information
+        $json['amountTotal'] = Context::getContext()->cart->getOrderTotal() * 100;
+
+        // Line items
+        $json['lineItems'] = array();
+        // Products
+        foreach (Context::getContext()->cart->getProducts() as $product) {
+            $json['lineItems'][] = array(
+                'name' => $product['name'],
+                'price' => $product['price'] * 100,
+                'quantity' => $product['cart_quantity'],
+                'type' => 'PRODUCT',
+                'image_url' => $this->context->link->getImageLink($product['link_rewrite'], $product['id_image'], 'home_default'),
+            );
+        }
+        // Discounts
+        foreach (Context::getContext()->cart->getCartRules() as $cartRule) {
+            $json['lineItems'][] = array(
+                'name' => $cartRule['name'],
+                'price' => $cartRule['value_real'] * -100,
+                'quantity' => 1,
+                'type' => 'DISCOUNT',
+            );
+        }
+        // Shipping
+        $json['lineItems'][] = array(
+            'name' => 'Shipping',
+            'price' => Context::getContext()->cart->getTotalShippingCost() * 100,
+            'quantity' => 1,
+            'type' => 'SHIPPING',
+        );
+
+        // Metadata
+        $json['metadata'] = array(
+            'cart_id' => Context::getContext()->cart->id,
+            'customer_id' => Context::getContext()->customer->id,
+        );
+
+        return $json;
+    }
+
+    /**
+     * Display error messages.
+     */
     protected function displayError($errors)
     {
         if (!is_array($errors)) {
