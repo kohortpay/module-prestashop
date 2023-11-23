@@ -36,15 +36,10 @@ class KohortpayConfirmationModuleFrontController extends ModuleFrontController
         $customer = new Customer((int) $cart->id_customer);
 
         /**
-         * Since it's an example we are validating the order right here,
-         * You should not do it this way in your own module.
-         */
-        $payment_status = Configuration::get('PS_OS_PAYMENT'); // Default value for a payment that succeed.
-        $message = null; // You can add a comment directly into the order so the merchant will see it in the BO.
-
-        /**
          * Converting cart into a valid order
          */
+        $payment_status = Configuration::get('PS_OS_PAYMENT'); 
+        $message = $this->module->l('Payment was authorized by KohortPay'); 
         $module_name = $this->module->displayName;
         $currency_id = (int) Context::getContext()->currency->id;
 
@@ -65,9 +60,13 @@ class KohortpayConfirmationModuleFrontController extends ModuleFrontController
             /*
              * An error occured and is shown on a new page.
              */
-            $this->errors[] = $this->module->l('An error occured. Please contact the merchant to have more informations');
+            $this->context->smarty->assign(
+                array(
+                    'errors' => [$this->module->l('An error occured to validate your order. Please contact the merchant to have more informations')],
+                )
+            );
 
-            return $this->setTemplate('error.tpl');
+            return $this->setTemplate('module:kohortpay/views/templates/front/error.tpl');
         }
     }
 }
