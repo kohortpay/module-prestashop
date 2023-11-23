@@ -15,9 +15,9 @@
     - [Using Composer](#using-composer)
   - [Testing](#testing)
     - [Requirements](#requirements)
-    - [Test steps](#test-steps)
-      - [Start Prestashop on your local machine](#start-prestashop-on-your-local-machine)
-      - [Install the module](#install-the-module)
+    - [Starting Prestashop](#starting-prestashop)
+    - [Testing the module](#testing-the-module)
+    - [Stopping Prestashop](#stopping-prestashop)
 
 ## Overview
 
@@ -33,7 +33,8 @@ xxxxxx
 - YYY
 
 ### Compabilities
-**Important**: This is working 
+
+**Important**: This is working
 
 ## Installation
 
@@ -54,18 +55,16 @@ Coming soon
 
 ## Testing
 
-If you want to test or make a demo of the KohortPay module on a fresh Prestashop 1.7 installation.
+If you want to test or make a demonstration of the KohortPay module on a fresh Prestashop installation, please read the following instruction:
 
 ### Requirements
 
-- Docker desktop
+- Docker desktop:
   - [Mac install instruction](https://docs.docker.com/desktop/install/mac-install/)
   - [Windows install instruction](https://docs.docker.com/desktop/install/windows-install/)
-- Docker Compose : Installation link
+- Docker Compose: Already included in Docker Desktop.
 
-### Test steps
-
-#### Start Prestashop on your local machine
+### Starting Prestashop
 
 1. Start your Docker desktop application: [More info](https://www.docker.com/blog/getting-started-with-docker-desktop/)
 2. Clone the repository and go inside the directory:
@@ -73,18 +72,28 @@ If you want to test or make a demo of the KohortPay module on a fresh Prestashop
    git clone git@github.com:kohortpay/module-prestashop.git
    cd module-prestashop
    ```
-3. Start the docker stack:
+3. Pick the prestashop version `here`
+4. Start the docker stack:
    ```
-   docker-compose up -d
+   docker-compose up -d --build
    ```
-4. Wait 30 seconds (docker starting), then visit [http://localhost/](http://localhost/)
+5. Wait for container to be up (~1 minute), then visit [http://localhost/](http://localhost/)
+6. Your prestashop is UP. Enjoy!
 
-#### Install the module
+### Testing the module
 
-1. By Dashboard
-   1. Go to local/admi
-   2. log init with crenditial (Login: user@example.com, Password : bitnami1)
-   3. Go to
-   4. Click on upload and select kohortpayZip
-   5. Enable
-2. By CLI
+1.  Go to local/admi
+2.  log init with crenditial (Login: user@example.com, Password : bitnami1)
+3.  Go to
+4.  Click on upload and select kohortpayZip
+5.  Enable
+
+6.  Connect
+
+### Stopping Prestashop
+
+When your tests are over, you can stop and destroy everything with the following command:
+
+```
+docker-compose down --volumes
+```
