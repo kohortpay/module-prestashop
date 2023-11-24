@@ -49,7 +49,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
             }
         } catch (ClientException $e) {
             if (_PS_MODE_DEV_) {
-                var_dump($json);
+                var_dump($this->getCheckoutSessionJson());
             }
             if ($e->hasResponse()) {
                 $errorResponse = json_decode($e->getResponse()->getBody()->getContents(), true);

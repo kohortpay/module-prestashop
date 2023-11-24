@@ -68,6 +68,8 @@ class Kohortpay extends PaymentModule
         }
 
         Configuration::updateValue('KOHORTPAY_LIVE_MODE', false);
+        Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', null);
+        Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
 
         return parent::install() &&
             $this->registerHook('header') &&
@@ -78,6 +80,8 @@ class Kohortpay extends PaymentModule
     public function uninstall()
     {
         Configuration::deleteByName('KOHORTPAY_LIVE_MODE');
+        Configuration::deleteByName('KOHORTPAY_API_SECRET_KEY');
+        Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
 
         return parent::uninstall();
     }
@@ -166,6 +170,15 @@ class Kohortpay extends PaymentModule
                         'label' => $this->l('API Secret Key'),
                         'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with sk_'),
                     ),
+                    array(
+                        'type' => 'text',
+                        'name' => 'KOHORTPAY_MINIMUM_AMOUNT',
+                        'class' => 'fixed-width-xs',
+                        'size' => 20,
+                        'prefix' => $this->context->currency->iso_code,
+                        'label' => $this->l('Minimum amount'),
+                        'desc' => $this->l('Minimum amount to enable KohortPay payment method'),
+                    ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
@@ -182,6 +195,7 @@ class Kohortpay extends PaymentModule
         return array(
             'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', true),
             'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
+            'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 0),
         );
     }
 
@@ -198,26 +212,6 @@ class Kohortpay extends PaymentModule
     }
 
     /**
-    * Add the CSS & JavaScript files you want to be loaded in the BO.
-    */
-    public function hookDisplayBackOfficeHeader()
-    {
-        if (Tools::getValue('configure') == $this->name) {
-            $this->context->controller->addJS($this->_path.'views/js/back.js');
-            $this->context->controller->addCSS($this->_path.'views/css/back.css');
-        }
-    }
-
-    /**
-     * Add the CSS & JavaScript files you want to be added on the FO.
-     */
-    public function hookHeader()
-    {
-        $this->context->controller->addJS($this->_path.'/views/js/front.js');
-        $this->context->controller->addCSS($this->_path.'/views/css/front.css');
-    }
-
-    /**
      * Return payment options available for PS 1.7+
      *
      * @param array Hook parameters
@@ -226,15 +220,22 @@ class Kohortpay extends PaymentModule
      */
     public function hookPaymentOptions($params)
     {
-        if (!$this->active) {
+        if (!Configuration::get('KOHORTPAY_LIVE_MODE')) {
             return;
         }
+
         if (!$this->checkCurrency($params['cart'])) {
             return;
         }
+
+        if ($params['cart']->getOrderTotal() < Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')) {
+            return;
+        }
+
         $option = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
-        $option->setCallToActionText($this->l('Pay with KohortPay'))
-            ->setAdditionalInformation($this->l('Pay less, together. Invite your friend and save money until 20% on your order.'))
+        $option->setLogo(Media::getMediaPath(_PS_MODULE_DIR_.$this->name.'/views/img/kohortpay_logo_payment.png'))
+            ->setCallToActionText($this->l('Pay, share and save up to 20% off'))
+            ->setAdditionalInformation($this->l('Save money and so does your friend, from the first friend you invite.'))
             ->setAction($this->context->link->getModuleLink($this->name, 'redirect', array(), true));
 
         return [
