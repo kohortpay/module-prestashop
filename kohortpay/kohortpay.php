@@ -34,7 +34,7 @@ class Kohortpay extends PaymentModule
     {
         $this->name = 'kohortpay';
         $this->tab = 'payments_gateways';
-        $this->version = '0.1.0';
+        $this->version = '1.0.0';
         $this->author = 'KohortPay';
         $this->need_instance = 0;
 
@@ -167,6 +167,7 @@ class Kohortpay extends PaymentModule
                     array(
                         'type' => 'password',
                         'name' => 'KOHORTPAY_API_SECRET_KEY',
+                        'required' => true,
                         'label' => $this->l('API Secret Key'),
                         'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with sk_'),
                     ),

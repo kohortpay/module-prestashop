@@ -34,13 +34,10 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
         $client = new Client();
         try {
             $response = $client->post(
-                "https://api.kohortpay.dev/checkout-sessions/",
+                "https://api.kohortpay.dev/checkout-sessions",
                 [
+                    'headers' => [ 'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY') ],
                     'json' => $this->getCheckoutSessionJson(),
-                    'auth' => [
-                        Configuration::get('KOHORTPAY_API_SECRET_KEY'),
-                        ''
-                    ]
                 ],
             );
             $checkoutSession = json_decode($response->getBody()->getContents(), true);
