@@ -139,7 +139,7 @@ If you want to test or make a demonstration of the KohortPay module on a fresh P
     - Password: bitnami1
 3. Install the module ([see instruction above](#installation))
 4. Configure the module ([see instructions above](#configuration))
-6. Go back to the frontend (http://localhost/) and proceed to the checkout with enough products in your cart (to reach minimum amount in settings).
+6. Go back to the frontend (http://localhost/) and proceed to the checkout with enough products in your cart (to reach minimum amount defined in settings).
 7. At the Step 4, select KohortPay as a payment method and place the order. You should be redirected to KohortPay payment page. Enjoy!
 
 ### Stopping Prestashop
