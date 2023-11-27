@@ -147,10 +147,10 @@ class Kohortpay extends PaymentModule
                 'input' => array(
                     array(
                         'type' => 'switch',
-                        'label' => $this->l('Live mode'),
+                        'label' => $this->l('Activate'),
                         'name' => 'KOHORTPAY_LIVE_MODE',
                         'is_bool' => true,
-                        'desc' => $this->l('Use this module in live mode'),
+                        'desc' => $this->l("Must be enabled to display KohortPay in your checkout page."),
                         'values' => array(
                             array(
                                 'id' => 'active_on',
@@ -167,18 +167,17 @@ class Kohortpay extends PaymentModule
                     array(
                         'type' => 'password',
                         'name' => 'KOHORTPAY_API_SECRET_KEY',
-                        'required' => true,
+                        'class' => 'fixed-width-xl',
                         'label' => $this->l('API Secret Key'),
-                        'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with sk_'),
+                        'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'),
                     ),
                     array(
                         'type' => 'text',
                         'name' => 'KOHORTPAY_MINIMUM_AMOUNT',
-                        'class' => 'fixed-width-xs',
-                        'size' => 20,
+                        'class' => 'fixed-width-md',
                         'prefix' => $this->context->currency->iso_code,
                         'label' => $this->l('Minimum amount'),
-                        'desc' => $this->l('Minimum amount to enable KohortPay payment method'),
+                        'desc' => $this->l('Minimum total order amount to display KohortPay in your checkout page.'),
                     ),
                 ),
                 'submit' => array(
@@ -196,7 +195,7 @@ class Kohortpay extends PaymentModule
         return array(
             'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', true),
             'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
-            'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 0),
+            'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 30),
         );
     }
 
@@ -207,7 +206,24 @@ class Kohortpay extends PaymentModule
     {
         $form_values = $this->getConfigFormValues();
 
+        // Validate KOHORTPAY_MINIMUM_AMOUNT field is a valid price
+        if (!Validate::isPrice(Tools::getValue('KOHORTPAY_MINIMUM_AMOUNT'))) {
+            $this->context->controller->errors[] = $this->l('Invalid value for minimum amount.');
+            return false;
+        }
+
+        // Validate KOHORTPAY_API_SECRET_KEY field is filled if live mode is enabled
+        if (Tools::getValue('KOHORTPAY_LIVE_MODE') && !Tools::getValue('KOHORTPAY_API_SECRET_KEY') && !Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
+            $this->context->controller->errors[] = $this->l('API Secret Key is required.');
+            return false;
+        }
+
         foreach (array_keys($form_values) as $key) {
+            // If KOHORTPAY_API_SECRET_KEY value is empty but configuration value is not, use the configuration value
+            if($key == 'KOHORTPAY_API_SECRET_KEY' && !Tools::getValue($key) && Configuration::get($key)) {
+                Configuration::updateValue($key, Configuration::get($key));
+                continue;
+            }
             Configuration::updateValue($key, Tools::getValue($key));
         }
     }
@@ -222,6 +238,10 @@ class Kohortpay extends PaymentModule
     public function hookPaymentOptions($params)
     {
         if (!Configuration::get('KOHORTPAY_LIVE_MODE')) {
+            return;
+        }
+
+        if (!Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
             return;
         }
 

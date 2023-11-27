@@ -70,7 +70,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
 
         // Return URLs
         $json['successUrl'] = $this->context->link->getModuleLink('kohortpay', 'confirmation', array('action' => 'success', 'cart_id' => Context::getContext()->cart->id, 'secure_key' => Context::getContext()->customer->secure_key));
-        $json['cancelUrl'] = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'index.php?controller=order&step=1';
+        $json['cancelUrl'] = Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'order';
 
         // Locale & currency
         $languageCode = explode('-', Context::getContext()->language->language_code);
@@ -103,7 +103,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
         }
         // Shipping
         $json['lineItems'][] = array(
-            'name' => 'Shipping',
+            'name' => $this->getCarrierName(Context::getContext()->cart->id_carrier),
             'price' => Context::getContext()->cart->getTotalShippingCost() * 100,
             'quantity' => 1,
             'type' => 'SHIPPING',
@@ -116,6 +116,12 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
         );
 
         return $json;
+    }
+
+    protected function getCarrierName($idCarrier)
+    {
+        $carrier = new Carrier($idCarrier);
+        return $carrier->name;
     }
 
     /**
