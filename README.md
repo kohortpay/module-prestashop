@@ -1,19 +1,20 @@
 # Official KohortPay Prestashop module
 
-This module adds a new payment method to PrestaShop: `KohortPay`, which allows you turn your customers into your brands advocates by letting them invite their friends with a cashback.
+This module adds a new payment method to PrestaShop: `KohortPay`, which allows you to lower your acquisition costs by turning your customers into your brands advocates. They will have the opportunity to invite all their friends to buy more on your store in exchange for cashback.
 
 
 ## Table of content
 
 - [Official KohortPay Prestashop module](#official-kohortpay-prestashop-module)
   - [Table of content](#table-of-content)
-  - [Overview](#overview)
+  - [What is KohortPay](#what-is-kohortpay)
     - [Description](#description)
+    - [Benefits](#benefits)
+  - [Module overview](#module-overview)
     - [Version](#version)
     - [Licence](#licence)
     - [Compabilities and Restrictions](#compabilities-and-restrictions)
     - [Features](#features)
-    - [Benefits](#benefits)
   - [Installation](#installation)
     - [Using ZIP](#using-zip)
     - [Using Prestashop marketplace](#using-prestashop-marketplace)
@@ -34,11 +35,20 @@ This module adds a new payment method to PrestaShop: `KohortPay`, which allows y
     - [Feedback](#feedback)
     - [Support](#support)
 
-## Overview
+## What is KohortPay
 
 ### Description
 
-Kohortpay will turn your customers into your brands advocates by letting them invite their friends with a cashback : Pay less, together. Increase your sales and your conversion with KohortPay! That's awesoooome!
+KohortPay lets your customers pay, refer and save on every purchase. Cut your customer acquisition costs in half while offering your customers a social and fun brand experience. And just like that, your checkout becomes so koool.
+
+### Benefits
+
+- **No setup costs**: integrate KohortPay on your site and increase customer satisfaction in 10 minutes - ready, set, GO.
+- **Lower your acquisition costs**: drive high-quality customer acquisition at half the cost of existing overpriced customer acquisition channels.
+- **Pay for performance**: no commitments. You only pay for results. Start and stop in 1 click.
+- **Brand reinforcement**: generate content from customers and harness the power of  word-of-mouth recommendations. Personalize KohortPay to look and feel like your brand. Configure the experience to overcome your challenges and meet your objectives.
+
+## Module overview
 
 ### Version
 Current version is 1.0.0. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
@@ -54,14 +64,10 @@ The module and this repository is under MIT License.
 ### Features
 - Add a new payment method that you customer will love (Pay less, together)
 - Redirect to an awesome and customized payment page (using you customer order details).
-- Be able to enable/disable the module through the settings.
+- Enable/disable the module by a simple switch through the settings.
 - Possibility to set minimun amount, under which the payment is disabled. 
 - Easy way to switch live/test mode by filling you API secret key (sk or sk_test).
 - Handle API errors (with more details if Prestashop is in debug mode).
-
-### Benefits
-
-- Coming soon...
 
 ## Installation
 
@@ -101,7 +107,7 @@ Start with sk_ or sk_test (for test mode).
 
 ### Minimum amount
 
-You can define here the total order minimum amount to display the KohortPay payment method (by default, it's 30€).
+You can define here the total order minimum amount to display the KohortPay payment method (minimum 30€).
 
 ## Testing
 
