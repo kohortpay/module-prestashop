@@ -103,7 +103,9 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     //$json['currency'] = Context::getContext()->currency->iso_code;
 
     // Order information
-    $json['amountTotal'] = Context::getContext()->cart->getOrderTotal() * 100;
+    $json['amountTotal'] = $this->cleanPrice(
+      Context::getContext()->cart->getOrderTotal()
+    );
 
     // Line items
     $json['lineItems'] = [];
@@ -112,7 +114,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
       $json['lineItems'][] = [
         'name' => $this->cleanString($product['name']),
         'description' => $this->cleanString($product['description_short']),
-        'price' => $product['price'] * 100,
+        'price' => $this->cleanPrice($product['price']),
         'quantity' => $product['cart_quantity'],
         'type' => 'PRODUCT',
         'image_url' => $this->context->link->getImageLink(
@@ -126,7 +128,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     foreach (Context::getContext()->cart->getCartRules() as $cartRule) {
       $json['lineItems'][] = [
         'name' => $this->cleanString($cartRule['name']),
-        'price' => $cartRule['value_real'] * -100,
+        'price' => $this->cleanPrice($cartRule['value_real']) * -1,
         'quantity' => 1,
         'type' => 'DISCOUNT',
       ];
@@ -134,7 +136,9 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     // Shipping
     $json['lineItems'][] = [
       'name' => $this->getCarrierName(Context::getContext()->cart->id_carrier),
-      'price' => Context::getContext()->cart->getTotalShippingCost() * 100,
+      'price' => $this->cleanPrice(
+        Context::getContext()->cart->getTotalShippingCost()
+      ),
       'quantity' => 1,
       'type' => 'SHIPPING',
     ];
@@ -165,6 +169,17 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     $string = strip_tags($string);
 
     return $string;
+  }
+
+  /**
+   * Clean price to avoid price with more than 2 decimals.
+   */
+  protected function cleanPrice($price)
+  {
+    $price = round($price, 2);
+    $price = $price * 100;
+
+    return $price;
   }
 
   /**
