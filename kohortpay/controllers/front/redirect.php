@@ -114,7 +114,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
       $json['lineItems'][] = [
         'name' => $this->cleanString($product['name']),
         'description' => $this->cleanString($product['description_short']),
-        'price' => $this->cleanPrice($product['price']),
+        'price' => $this->cleanPrice($product['price_wt']),
         'quantity' => $product['cart_quantity'],
         'type' => 'PRODUCT',
         'image_url' => $this->context->link->getImageLink(
