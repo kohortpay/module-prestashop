@@ -2,7 +2,7 @@
 <module>
 	<name>kohortpay</name>
 	<displayName><![CDATA[KohortPay]]></displayName>
-	<version><![CDATA[1.0.1]]></version>
+	<version><![CDATA[1.0.2]]></version>
 	<description><![CDATA[Social payment method : Pay less, together. Turn your customer into your brand advocates.]]></description>
 	<author><![CDATA[KohortPay]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>

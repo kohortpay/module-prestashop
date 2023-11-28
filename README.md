@@ -51,7 +51,7 @@ KohortPay lets your customers pay, refer and save on every purchase. Cut your cu
 ## Module overview
 
 ### Version
-Current version is 1.0.1. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
+Current version is 1.0.2. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
 
 ### Licence
 The module and this repository is under MIT License. 
