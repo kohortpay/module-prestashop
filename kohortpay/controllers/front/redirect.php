@@ -88,8 +88,8 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
         'secure_key' => Context::getContext()->customer->secure_key,
       ]
     );
-    $json['cancelUrl'] =
-      Tools::getShopDomainSsl(true, true) . __PS_BASE_URI__ . 'order';
+    // Cancel URL should integrate the Prestashop language code
+    $json['cancelUrl'] = $this->context->link->getPageLink('order');
 
     // Locale & currency
     $languageCode = explode(
@@ -107,7 +107,8 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     // Products
     foreach (Context::getContext()->cart->getProducts() as $product) {
       $json['lineItems'][] = [
-        'name' => $product['name'],
+        'name' => $this->cleanString($product['name']),
+        'description' => $this->cleanString($product['description_short']),
         'price' => $product['price'] * 100,
         'quantity' => $product['cart_quantity'],
         'type' => 'PRODUCT',
@@ -121,7 +122,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     // Discounts
     foreach (Context::getContext()->cart->getCartRules() as $cartRule) {
       $json['lineItems'][] = [
-        'name' => $cartRule['name'],
+        'name' => $this->cleanString($cartRule['name']),
         'price' => $cartRule['value_real'] * -100,
         'quantity' => 1,
         'type' => 'DISCOUNT',
@@ -144,10 +145,23 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     return $json;
   }
 
+  /**
+   * Get carrier name from id.
+   */
   protected function getCarrierName($idCarrier)
   {
     $carrier = new Carrier($idCarrier);
-    return $carrier->name;
+    return $this->cleanString($carrier->name);
+  }
+
+  /**
+   * Clean string to avoid XSS.
+   */
+  protected function cleanString($string)
+  {
+    $string = strip_tags($string);
+
+    return $string;
   }
 
   /**
