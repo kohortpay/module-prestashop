@@ -29,7 +29,7 @@ services:
     volumes:
       - "prestashop_data:/bitnami/prestashop"
       # Uncomment the following line only for development purposes
-      - "./kohortpay:/bitnami/prestashop/modules/kohortpay"
+      #- "./kohortpay:/bitnami/prestashop/modules/kohortpay"
     depends_on:
       - mariadb
 
