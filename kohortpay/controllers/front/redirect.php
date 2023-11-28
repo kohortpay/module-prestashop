@@ -96,6 +96,9 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
       '-',
       Context::getContext()->language->language_code
     );
+    if (!isset($languageCode[1])) {
+      $languageCode[1] = $languageCode[0];
+    }
     $json['locale'] = $languageCode[0] . '_' . strtoupper($languageCode[1]);
     //$json['currency'] = Context::getContext()->currency->iso_code;
 
