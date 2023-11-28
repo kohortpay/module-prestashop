@@ -109,8 +109,7 @@ class Kohortpay extends PaymentModule
       $this->local_path . 'views/templates/admin/configure.tpl'
     );
 
-    //return $output . $this->renderForm();
-    return $this->renderForm();
+    return $output . $this->renderForm();
   }
 
   /**
