@@ -66,9 +66,9 @@
 				<h2 style="padding-bottom: 10px">{l s='Pricing' mod='kohortpay'}</h2>
 				<dl class="list-unstyled">
 					<dt>{l s='Payment Fees' mod='kohortpay'}</dt>
-					<dd>{l s='0,25€ + 2%' mod='kohortpay'}</dd>
+					<dd>0,25€ + 2%</dd>
 					<dt style="padding-top: 8px">{l s='Acquisition Fees' mod='kohortpay'}</dt>
-					<dd>{l s='10%' mod='kohortpay'}</dd>
+					<dd>10%</dd>
 				</dl>
 			</div>
 			
