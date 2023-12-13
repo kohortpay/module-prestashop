@@ -111,7 +111,7 @@ You can define here the total order minimum amount to display the KohortPay paym
 
 ## Demo
 
-You can access a live demo of the KohortPay module here: [https://prestashop.demo.kohortpay.com](https://prestashop.demo.kohortpay.com)
+You can access a live demo of the KohortPay module here: [https://prestashop-demo.kohortpay.com](https://prestashop-demo.kohortpay.com)
 
 ## Testing
 
