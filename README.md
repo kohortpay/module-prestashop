@@ -109,9 +109,13 @@ Start with sk_ or sk_test (for test mode).
 
 You can define here the total order minimum amount to display the KohortPay payment method (minimum 30€).
 
+## Demo
+
+You can access a live demo of the KohortPay module here: [https://prestashop.demo.kohortpay.com](https://prestashop.demo.kohortpay.com)
+
 ## Testing
 
-If you want to test or make a demonstration of the KohortPay module on a fresh Prestashop installation, please read the following instruction:
+If you want to test the KohortPay module on a fresh Prestashop installation, please read the following instruction:
 
 ### Requirements
 
