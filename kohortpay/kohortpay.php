@@ -41,7 +41,7 @@ class Kohortpay extends PaymentModule
     /**
      * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
      */
-    $this->bootstrap = true;
+    $this->bootstrap = false;
 
     parent::__construct();
 
@@ -57,6 +57,8 @@ class Kohortpay extends PaymentModule
     $this->limited_currencies = ['EUR'];
 
     $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
+
+    $this->module_key = 'f3f8c71200e9d7a10a7bf766873bde81';
   }
 
   /**
