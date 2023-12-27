@@ -34,7 +34,7 @@ class Kohortpay extends PaymentModule
   {
     $this->name = 'kohortpay';
     $this->tab = 'payments_gateways';
-    $this->version = '1.0.2';
+    $this->version = '1.0.3';
     $this->author = 'KohortPay';
     $this->need_instance = 0;
 
