@@ -1,7 +1,4 @@
 <?php
-use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Client;
-
 /**
  * 2022-2024 KohortPay
  *
@@ -24,6 +21,14 @@ use GuzzleHttp\Client;
  * @copyright 2022-2024 KohortPay
  * @license   https://opensource.org/licenses/MIT The MIT License
  */
+
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Client;
+
+if (!defined('_PS_VERSION_')) {
+  exit();
+}
+
 class KohortpayRedirectModuleFrontController extends ModuleFrontController
 {
   /**
@@ -120,7 +125,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
         'image_url' => $this->context->link->getImageLink(
           $product['link_rewrite'],
           $product['id_image'],
-          'home_default'
+          ImageType::getFormattedName('home')
         ),
       ];
     }

@@ -25,6 +25,7 @@ This module adds a new payment method to PrestaShop: `KohortPay`, which allows y
     - [Activation](#activation)
     - [API Secret Key](#api-secret-key)
     - [Minimum amount](#minimum-amount)
+  - [Demo](#demo)
   - [Testing](#testing)
     - [Requirements](#requirements)
     - [Starting Prestashop](#starting-prestashop)
@@ -51,7 +52,7 @@ KohortPay lets your customers pay, refer and save on every purchase. Cut your cu
 ## Module overview
 
 ### Version
-Current version is 1.0.2. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
+Current version is 1.0.3. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
 
 ### Licence
 The module and this repository is under MIT License. 

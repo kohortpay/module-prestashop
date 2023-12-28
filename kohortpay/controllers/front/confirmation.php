@@ -21,6 +21,11 @@
  * @copyright 2022-2024 KohortPay
  * @license   https://opensource.org/licenses/MIT The MIT License
  */
+
+if (!defined('_PS_VERSION_')) {
+  exit();
+}
+
 class KohortpayConfirmationModuleFrontController extends ModuleFrontController
 {
   public function postProcess()
