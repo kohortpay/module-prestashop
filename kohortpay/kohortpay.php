@@ -72,8 +72,8 @@ class Kohortpay extends PaymentModule
       return false;
     }
 
-    Configuration::updateValue('KOHORTPAY_LIVE_MODE', false);
-    Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', null);
+    Configuration::updateValue('KOHORTPAY_LIVE_MODE', true);
+    Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', getenv('DEMO_SECRET_KEY');
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
 
     return parent::install() &&
