@@ -23,7 +23,7 @@
  */
 
 if (!defined('_PS_VERSION_')) {
-  exit;
+  exit();
 }
 
 class Kohortpay extends PaymentModule
@@ -75,16 +75,10 @@ class Kohortpay extends PaymentModule
     }
 
     Configuration::updateValue('KOHORTPAY_LIVE_MODE', true);
-    Configuration::updateValue(
-      'KOHORTPAY_API_SECRET_KEY',
-      getenv('DEMO_SECRET_KEY')
-    );
+    Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', '');
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
 
-    return parent::install() &&
-      $this->registerHook('header') &&
-      $this->registerHook('displayBackOfficeHeader') &&
-      $this->registerHook('paymentOptions');
+    return parent::install() && $this->registerHook('paymentOptions');
   }
 
   public function uninstall()
@@ -101,6 +95,8 @@ class Kohortpay extends PaymentModule
    */
   public function getContent()
   {
+    $this->bootstrap = true;
+
     /**
      * If values have been submitted in the form, process.
      */
