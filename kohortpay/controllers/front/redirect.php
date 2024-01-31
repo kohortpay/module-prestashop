@@ -26,7 +26,7 @@ use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Client;
 
 if (!defined('_PS_VERSION_')) {
-  exit();
+  exit;
 }
 
 class KohortpayRedirectModuleFrontController extends ModuleFrontController

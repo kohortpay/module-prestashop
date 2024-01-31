@@ -22,7 +22,7 @@
  * @license   https://opensource.org/licenses/MIT The MIT License
  */
 if (!defined('_PS_VERSION_')) {
-  exit();
+  exit;
 }
 
 /**

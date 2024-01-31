@@ -23,7 +23,7 @@
  */
 
 if (!defined('_PS_VERSION_')) {
-  exit();
+  exit;
 }
 
 class KohortpayConfirmationModuleFrontController extends ModuleFrontController
