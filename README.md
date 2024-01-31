@@ -61,10 +61,11 @@ The module and this repository is under MIT License.
 - Only FR and EN languages available.
 - Only EUR currency available.
 - Works and has been tested with Prestashop 1.7 and 8 (should work with Prestashop 1.6 but not tested, use at your own risk).
+- You should use only 2 decimals for your price and round them on each item.
 
 ### Features
 - Add a new payment method that you customer will love (Pay less, together)
-- Redirect to an awesome and customized payment page (using you customer order details).
+- Redirect to an awesome and customized payment page (using you customer cart details).
 - Enable/disable the module by a simple switch through the settings.
 - Possibility to set minimun amount, under which the payment is disabled. 
 - Easy way to switch live/test mode by filling you API secret key (sk or sk_test).
@@ -112,11 +113,14 @@ You can define here the total order minimum amount to display the KohortPay paym
 
 ## Demo
 
-You can access a live demo of the KohortPay module here: [https://prestashop-demo.kohortpay.com](https://prestashop-demo.kohortpay.com)
+You can access a live demo of the KohortPay module here:
+- Front-Office : [https://prestashop-demo.kohortpay.com](https://prestashop-demo.kohortpay.com)
+- Back-Office : [https://prestashop-demo.kohortpay.com/administration/](https://prestashop-demo.kohortpay.com/administration)
 
 ## Testing
 
-If you want to test the KohortPay module on a fresh Prestashop installation, please read the following instruction:
+If you want to test the KohortPay module on a fresh Prestashop installation, please read the following instruction.
+The stack is based on Bitnami Docker image.
 
 ### Requirements
 
@@ -167,7 +171,7 @@ docker-compose down --volumes
 If you have any questions, do not hesitate to check our documentations : 
 - [Product Docs](https://docs.kohortpay.com/)
 - [API & SDK Reference](https://api-docs.kohortpay.com/)
-- [Help Center](https://support.kohortpay.com/)
+- [Help Center](https://help.kohortpay.com/fr)
 
 ### Feedback
 If you have any idea or suggestion to improve our solution or the module, you can send an email to feedback@kohortpay.com. You can also check our [roadmap here](https://roadmap.kohortpay.com/tabs/1-under-consideration).
