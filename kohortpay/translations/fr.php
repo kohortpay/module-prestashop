@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{kohortpay}prestashop>kohortpay_2a2e3c4abf4b1fd018afabf554b5b59a'] = 'KohortPay';
 $_MODULE['<{kohortpay}prestashop>kohortpay_624c9a97637990fcd383605d3e49bd3c'] = 'Mode de paiement social : Payez moins, ensemble. Transformez vos clients en défenseurs de votre marque.';
 $_MODULE['<{kohortpay}prestashop>kohortpay_a119ae64eb05fab9c8c4bc5fa0072d1b'] = 'Etes-vous sûr de vouloir désinstaller KohortPay ?';
