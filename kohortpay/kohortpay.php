@@ -34,14 +34,14 @@ class Kohortpay extends PaymentModule
   {
     $this->name = 'kohortpay';
     $this->tab = 'payments_gateways';
-    $this->version = '1.0.2';
+    $this->version = '1.0.3';
     $this->author = 'KohortPay';
     $this->need_instance = 0;
 
     /**
      * Set $this->bootstrap to true if your module is compliant with bootstrap (PrestaShop 1.6)
      */
-    $this->bootstrap = true;
+    $this->bootstrap = false;
 
     parent::__construct();
 
@@ -57,6 +57,8 @@ class Kohortpay extends PaymentModule
     $this->limited_currencies = ['EUR'];
 
     $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
+
+    $this->module_key = 'f3f8c71200e9d7a10a7bf766873bde81';
   }
 
   /**
@@ -73,7 +75,7 @@ class Kohortpay extends PaymentModule
     }
 
     Configuration::updateValue('KOHORTPAY_LIVE_MODE', true);
-    Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', getenv('DEMO_SECRET_KEY');
+    Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', getenv('DEMO_SECRET_KEY'));
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
 
     return parent::install() &&
