@@ -36,10 +36,10 @@ class Kohortpay extends PaymentModule
     {
         $this->name = 'kohortpay';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.3';
+        $this->version = '1.0.4';
         $this->author = 'KohortPay';
         $this->need_instance = 0;
-        $this->bootstrap = false;
+        $this->bootstrap = true;
 
         parent::__construct();
 
@@ -93,8 +93,6 @@ class Kohortpay extends PaymentModule
      */
     public function getContent()
     {
-        $this->bootstrap = true;
-
         if (((bool) Tools::isSubmit('submitKohortpayModule')) == true) {
             $this->postProcess();
         }
@@ -254,6 +252,8 @@ class Kohortpay extends PaymentModule
             }
             Configuration::updateValue($key, Tools::getValue($key));
         }
+
+        $this->context->controller->confirmations[] = $this->l('Settings updated');
     }
 
     /**

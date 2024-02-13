@@ -44,3 +44,4 @@ $_MODULE['<{kohortpay}prestashop>configure_2ac1967cda1ba3f49f0e70f0b85b235c'] = 
 $_MODULE['<{kohortpay}prestashop>configure_8c88bfe9e9917a27f908fb7df0a0fd17'] = 'notre documentation';
 $_MODULE['<{kohortpay}prestashop>configure_b73ce702ec769d11f3830c8ebd7a3e68'] = 'Vous pouvez aussi nous contacter par email:';
 $_MODULE['<{kohortpay}prestashop>error_a25c753ee3e4be15ec0daa5a40deb7b8'] = ' Une erreur s\'est produite';
+$_MODULE['<{kohortpay}prestashop>kohortpay_c888438d14855d7d96a2724ee9c306bd'] = 'Configuration mise à jour';
