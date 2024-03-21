@@ -37,6 +37,7 @@ class KohortpayConfirmationModuleFrontController extends ModuleFrontController
 
         $cart_id = Tools::getValue('cart_id');
         $secure_key = Tools::getValue('secure_key');
+        $transaction_id = Tools::getValue('payment_id');
 
         $cart = new Cart((int) $cart_id);
         $customer = new Customer((int) $cart->id_customer);
@@ -67,6 +68,19 @@ class KohortpayConfirmationModuleFrontController extends ModuleFrontController
         $order_id = Order::getOrderByCartId((int) $cart->id);
 
         if ($order_id && $secure_key == $customer->secure_key) {
+
+            $order = new Order((int) $order_id);
+
+            // add invoice
+            $order->setInvoice(true);
+
+            // get order payment object
+            $order_payment = $order->getOrderPaymentCollection();
+            // set transaction id
+            $order_payment[0]->transaction_id = $transaction_id;
+            $order_payment[0]->save();
+                      
+
             /**
              * The order has been placed so we redirect the customer on the confirmation page.
              */
