@@ -451,75 +451,37 @@ class Kohortpay extends PaymentModule
         $cart = new Cart((int) $order->id_cart);
         $customer = new Customer((int) $order->id_customer);
 
-        $this->LogApiErrorMessage(
-            'Hook ActionPaymentConfirmation called' . $order->id,
-            $order->id
-        );
-
-
         if (!Configuration::get('KOHORTREF_LIVE_MODE')) {
             return;
         }
-        $this->LogApiErrorMessage(
-            'KohortRef live mode is enabled for order ' . $order->id,
-            $order->id
-        );
-
 
         if (!Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
             return;
         }
-        $this->LogApiErrorMessage(
-            'KohortPay API secret key is set for order ' . $order->id,
-            $order->id
-        );
-
 
         if (!Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY')) {
             return;
         }
-        $this->LogApiErrorMessage(
-            'KohortPay webhook secret key is set for order ' . $order->id,
-            $order->id
-        );
 
-
+        // @TODO: Verify this function
         if (!$this->checkCurrency($cart->id_currency)) {
             return;
         }
-        $this->LogApiErrorMessage(
-            'Currency is valid for order ' . $cart->id_currency,
-            $order->id
-        );
 
-
+        // @TODO: Verify this function with taxes
         if (
             $cart->getOrderTotal() <
             Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')
         ) {
             return;
         }
-        $this->LogApiErrorMessage(
-            'Order total is valid for order ' . $order->id,
-            $order->id
-        );
 
-
-        $paymentMethod = $order->payment;
+        $paymentMethod = $order->module;
         if (!in_array($paymentMethod, $this->getKohortRefPaymentMethods())) {
             return;
         }
-        $this->LogApiErrorMessage(
-            'Payment method is valid for order ' . $order->id,
-            $order->id
-        );
-
 
         $orderJson = $this->getOrderJson($cart, $order, $customer);
-        $this->LogApiErrorMessage(
-            'Order JSON object built for order : ' . json_decode($orderJson),
-            $order->id
-        );
         $this->sendOrder($order->id, $orderJson);
     }
 
@@ -534,13 +496,13 @@ class Kohortpay extends PaymentModule
         $json['customerEmail'] = $customer->email;
         // $json['customerPhoneNumber'] = $customer->phone;
 
-        // Order information
+        // Get order total with taxes
         $json['amountTotal'] = $this->cleanPrice(
-            $cart->getOrderTotal()
+            $cart->getOrderTotal(true, Cart::BOTH)
         );
 
-        // Add customer locale
-        $json['locale'] = $customer->locale;
+        // Get customer locale
+        //$json['locale'] = $this->context->language->language_code;
 
         // Line items
         $json['lineItems'] = [];
@@ -579,12 +541,12 @@ class Kohortpay extends PaymentModule
         ];
 
         // Metadata
-        $json['client_reference_id'] = $order->id;
-        $json['payment_client_reference_id'] = $order->reference;
+        $transaction_id = OrderPayment::getByOrderReference($order->reference)->transaction_id;
+        $json['client_reference_id'] = $order->reference;
+        $json['payment_client_reference_id'] = $transaction_id ? $transaction_id : '';
         //$json['payment_group_share_id'] = $cart->id;
         $json['metadata'] = [
-          'order_id' => $order->id,
-          'payment_id' => $order->reference,
+          'order_id' => $order->reference,
           'cart_id' => $cart->id,
           'customer_id' => $customer->id,
         ];
@@ -597,6 +559,11 @@ class Kohortpay extends PaymentModule
      */
     protected function sendOrder($orderId, $orderJson)
     {
+        $this->LogApiErrorMessage(
+            'Sending order to KohortPay API with this JSON : ' . json_encode($orderJson),
+            $orderId
+        );
+
         $client = new Client();
         try {
             $response = $client->post('https://api.kohortpay.dev/checkout-sessions', [
@@ -605,6 +572,8 @@ class Kohortpay extends PaymentModule
               ],
               'json' => $orderJson,
             ]);
+
+            $responseArray = json_decode($response->getBody()->getContents(), true);    
         } catch (ClientException $e) {
             if ($e->hasResponse()) {
                 $errorResponse = json_decode(
@@ -666,12 +635,12 @@ class Kohortpay extends PaymentModule
     }
 
     /**
-     * Clean price to avoid price with more than 2 decimals.
+     * Round price to avoid price with more than 2 decimals.
      */
     protected function cleanPrice($price)
     {
-        $price = number_format($price, 2, '.', '');
         $price = $price * 100;
+        $price = round($price, 0);
 
         return $price;
     }
@@ -681,6 +650,10 @@ class Kohortpay extends PaymentModule
      */
     protected function LogApiErrorMessage($message, $orderId)
     {
+        if (is_array($message)) {
+            $message = implode(', ', (array) $message);
+        }
+
         PrestaShopLogger::addLog(
             $message,
             3,
