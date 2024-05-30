@@ -55,7 +55,7 @@ class Kohortpay extends PaymentModule
             'Are you sure you want to uninstall KohortPay ?'
         );
 
-        $this->limited_currencies = ['EUR'];
+        $this->limited_currencies = ['EUR', 'USD'];
 
         $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
 
@@ -81,8 +81,16 @@ class Kohortpay extends PaymentModule
         Configuration::updateValue('KOHORTPAY_WEBHOOK_SECRET_KEY', '');
         Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize([]));
         Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
+        Configuration::updateValue('KOHORTPAY_DEBUG_MODE', false);
 
-        return parent::install() && $this->registerHook('paymentOptions') && $this->registerHook('actionPaymentConfirmation');
+        $hooks = [
+          'paymentOptions',
+          'actionPaymentConfirmation',
+          'actionGetAdminOrderButtons',
+          'displayAdminOrderSide',
+        ];
+
+        return parent::install() && $this->registerHook($hooks);
     }
 
     public function uninstall()
@@ -93,6 +101,7 @@ class Kohortpay extends PaymentModule
         Configuration::deleteByName('KOHORTPAY_WEBHOOK_SECRET_KEY');
         Configuration::deleteByName('KOHORTREF_PAYMENT_METHODS');
         Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
+        Configuration::deleteByName('KOHORTPAY_DEBUG_MODE');
 
         return parent::uninstall();
     }
@@ -287,6 +296,28 @@ class Kohortpay extends PaymentModule
                     'name' => 'name',
                 ],
               ],
+              [
+                'type' => 'switch',
+                'label' => $this->l('Debug mode'),
+                'name' => 'KOHORTPAY_DEBUG_MODE',
+                'is_bool' => true,
+                'desc' => $this->l(
+                    'Add additional logs to help you debug KohortRef.'
+                ),
+                'values' => [
+                  [
+                    'id' => 'active_on',
+                    'value' => true,
+                    'label' => $this->l('Enabled'),
+                  ],
+                  [
+                    'id' => 'active_off',
+                    'value' => false,
+                    'label' => $this->l('Disabled'),
+                  ],
+                ],
+              ]
+
             ],
             'submit' => [
               'title' => $this->l('Save'),
@@ -303,6 +334,7 @@ class Kohortpay extends PaymentModule
         $configFormValues = [
           'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', false),
           'KOHORTREF_LIVE_MODE' => Configuration::get('KOHORTREF_LIVE_MODE', false),
+          'KOHORTPAY_DEBUG_MODE' => Configuration::get('KOHORTPAY_DEBUG_MODE', false),
           'KOHORTPAY_API_SECRET_KEY' => Configuration::get(
               'KOHORTPAY_API_SECRET_KEY',
               null
@@ -409,7 +441,8 @@ class Kohortpay extends PaymentModule
             return;
         }
 
-        if (!$this->checkCurrency($cart->id_currency)) {
+        $cartCurrencyCode = (new Currency($cart->id_currency))->iso_code;
+        if (!in_array($cartCurrencyCode, $this->limited_currencies)) {
             return;
         }
 
@@ -452,32 +485,61 @@ class Kohortpay extends PaymentModule
         $customer = new Customer((int) $order->id_customer);
 
         if (!Configuration::get('KOHORTREF_LIVE_MODE')) {
+            $this->LogOrderMessage(
+                'KohortRef is not enabled.',
+                $order->id,
+                2
+            );
             return;
         }
 
         if (!Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
+            $this->LogOrderMessage(
+                'API Secret Key is not set.',
+                $order->id,
+                2
+            );
             return;
         }
 
         if (!Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY')) {
+            $this->LogOrderMessage(
+                'WEBHOOK Secret Key is not set.',
+                $order->id,
+                2
+            );
             return;
         }
 
-        // @TODO: Verify this function
-        if (!$this->checkCurrency($cart->id_currency)) {
+        $orderCurrencyCode = (new Currency($order->id_currency))->iso_code;
+        if (!in_array($orderCurrencyCode, $this->limited_currencies)) {
+            $this->LogOrderMessage(
+                'Order currency (' . $orderCurrencyCode . ') is not supported. Supported currencies : '. implode(', ', $this->limited_currencies),
+                $order->id,
+                2
+            );
             return;
         }
 
-        // @TODO: Verify this function with taxes
         if (
-            $cart->getOrderTotal() <
+            $order->total_paid <
             Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')
         ) {
+            $this->LogOrderMessage(
+                'Order total (' . $order->total_paid . ') is less than minimum amount : ' . Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'),
+                $order->id,
+                2
+            );
             return;
         }
 
-        $paymentMethod = $order->module;
-        if (!in_array($paymentMethod, $this->getKohortRefPaymentMethods())) {
+        $orderPaymentMethod = $order->module;
+        if (!in_array($orderPaymentMethod, $this->getKohortRefPaymentMethods())) {
+            $this->LogOrderMessage(
+                'Order payment method (' .  $orderPaymentMethod . ') is not enabled for KohortRef. Supported payment methods : '. implode(', ', $this->getKohortRefPaymentMethods()),
+                $order->id,
+                2
+            );
             return;
         }
 
@@ -498,7 +560,7 @@ class Kohortpay extends PaymentModule
 
         // Get order total with taxes
         $json['amountTotal'] = $this->cleanPrice(
-            $cart->getOrderTotal(true, Cart::BOTH)
+            $order->total_paid
         );
 
         // Get customer locale
@@ -543,7 +605,7 @@ class Kohortpay extends PaymentModule
         // Metadata
         $transaction_id = OrderPayment::getByOrderReference($order->reference)->transaction_id;
         $json['client_reference_id'] = $order->reference;
-        $json['payment_client_reference_id'] = $transaction_id ? $transaction_id : '';
+        $json['payment_client_reference_id'] = $transaction_id ? $transaction_id : $order->reference;
         //$json['payment_group_share_id'] = $cart->id;
         $json['metadata'] = [
           'order_id' => $order->reference,
@@ -559,9 +621,10 @@ class Kohortpay extends PaymentModule
      */
     protected function sendOrder($orderId, $orderJson)
     {
-        $this->LogApiErrorMessage(
-            'Sending order to KohortPay API with this JSON : ' . json_encode($orderJson),
-            $orderId
+        $this->LogOrderMessage(
+            'Sending order to KohortREF API with this JSON : ' . json_encode($orderJson),
+            $orderId,
+            1
         );
 
         $client = new Client();
@@ -573,7 +636,12 @@ class Kohortpay extends PaymentModule
               'json' => $orderJson,
             ]);
 
-            $responseArray = json_decode($response->getBody()->getContents(), true);    
+            $responseArray = json_decode($response->getBody()->getContents(), true); 
+            $this->LogOrderMessage(
+                'Order sent to KohortPay API with success. Checkout session ID : ' . $responseArray['id'],
+                $orderId,
+                1
+            );
         } catch (ClientException $e) {
             if ($e->hasResponse()) {
                 $errorResponse = json_decode(
@@ -584,35 +652,18 @@ class Kohortpay extends PaymentModule
                     true
                 );
                 if (isset($errorResponse['error']['message'])) {
-                    $this->LogApiErrorMessage(
+                    $this->LogOrderMessage(
                         $errorResponse['error']['message'],
                         $orderId
                     );
                     return;
                 }
             }
-            $this->LogApiErrorMessage(
+            $this->LogOrderMessage(
                 'An error occurred while trying to call KohortPay API to send order.',
                 $orderId
             );
         }
-    }
-
-    /**
-     * Check if this module is working for the current currency.
-     */
-    protected function checkCurrency($id_currency)
-    {
-        $currency_order = new Currency($id_currency);
-        $currencies_module = $this->getCurrency($id_currency);
-        if (is_array($currencies_module)) {
-            foreach ($currencies_module as $currency_module) {
-                if ($currency_order->id == $currency_module['id_currency']) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -646,17 +697,22 @@ class Kohortpay extends PaymentModule
     }
 
     /**
-     * Log API error messages.
+     * Log order messages.
      */
-    protected function LogApiErrorMessage($message, $orderId)
+    protected function LogOrderMessage($message, $orderId, $severity = 3)
     {
+        // if severity inferior to 3 and KOHORTPAY_DEBUG_MODE is disabled, return
+        if ($severity < 3 && !Configuration::get('KOHORTPAY_DEBUG_MODE')) {
+            return;
+        }
+
         if (is_array($message)) {
             $message = implode(', ', (array) $message);
         }
 
         PrestaShopLogger::addLog(
             $message,
-            3,
+            $severity,
             null,
             'Order',
             (int) $orderId,

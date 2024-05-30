@@ -181,8 +181,8 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
      */
     protected function cleanPrice($price)
     {
-        $price = number_format($price, 2, '.', '');
         $price = $price * 100;
+        $price = round($price, 0);
 
         return $price;
     }
