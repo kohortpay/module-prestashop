@@ -83,6 +83,8 @@ class Kohortpay extends PaymentModule
         Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
         Configuration::updateValue('KOHORTPAY_DEBUG_MODE', false);
 
+        include(dirname(__FILE__).'/sql/install.php');
+
         $hooks = [
           'paymentOptions',
           'actionPaymentConfirmation',
@@ -102,6 +104,8 @@ class Kohortpay extends PaymentModule
         Configuration::deleteByName('KOHORTREF_PAYMENT_METHODS');
         Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
         Configuration::deleteByName('KOHORTPAY_DEBUG_MODE');
+
+        include(dirname(__FILE__).'/sql/uninstall.php');
 
         return parent::uninstall();
     }
@@ -547,6 +551,41 @@ class Kohortpay extends PaymentModule
         $this->sendOrder($order->id, $orderJson);
     }
 
+
+    /**
+     * Displays "Send to KohortRef" button in order detail page
+     */
+    public function hookActionGetAdminOrderButtons(array $params)
+    {
+        $order = new Order($params['id_order']);
+
+        /** @var \Symfony\Bundle\FrameworkBundle\Routing\Router $router */
+        $router = $this->get('router');
+
+        /** @var \PrestaShopBundle\Controller\Admin\Sell\Order\ActionsBarButtonsCollection $bar */
+        $bar = $params['actions_bar_buttons_collection'];
+
+        $bar->add(
+            new \PrestaShopBundle\Controller\Admin\Sell\Order\ActionsBarButton(
+                'btn-info', ['href' => 'https://www.prestashop.com/'], 'Send to KohortRef'
+            )
+        );
+    }
+
+    /**
+     * Displays order KohortRef details in order detail page
+     */
+    public function hookDisplayAdminOrderSide(array $params)
+    {
+        return $this->render($this->getModuleTemplatePath() . 'order_kohortref_details.html.twig', [
+            'payment_group_id' => 'pg_0001205ae30b83',
+            'payment_group_share_id' => 'KHT-123456',
+            'payment_group_status' => 'PENDING',
+            'is_payment_group_owner' => true,
+            'payment_group_url' => 'https://www.prestashop.com/',
+        ]);
+    }
+
     /**
      * Build and get order JSON object to send to the API.
      */
@@ -602,11 +641,16 @@ class Kohortpay extends PaymentModule
           'type' => 'SHIPPING',
         ];
 
-        // Metadata
         $transaction_id = OrderPayment::getByOrderReference($order->reference)->transaction_id;
         $json['client_reference_id'] = $order->reference;
         $json['payment_client_reference_id'] = $transaction_id ? $transaction_id : $order->reference;
-        //$json['payment_group_share_id'] = $cart->id;
+        $shareId = $this->getShareIdByIdCart($cart->id);
+        if($shareId)
+        {
+            $json['payment_group_share_id'] = $shareId;
+        }
+
+        // Metadata        
         $json['metadata'] = [
           'order_id' => $order->reference,
           'cart_id' => $cart->id,
@@ -748,5 +792,33 @@ class Kohortpay extends PaymentModule
         $paymentMethods = Configuration::get('KOHORTREF_PAYMENT_METHODS', serialize([]));
         if(!$paymentMethods) return [];
         return unserialize($paymentMethods);
+    }
+
+    /**
+     * Render a twig template.
+     */
+    private function render(string $template, array $params = []): string
+    {
+        /** @var Twig_Environment $twig */
+        $twig = $this->get('twig');
+
+        return $twig->render($template, $params);
+    }
+
+    /**
+     * Get path to this module's template directory
+     */
+    private function getModuleTemplatePath(): string
+    {
+        return sprintf('@Modules/%s/views/templates/admin/', $this->name);
+    }
+
+    /**
+     * Make a query to kohortpay_cart table to get share_id with parameter id_cart
+     */
+    public static function getShareIdByIdCart($id_cart)
+    {
+        $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'kohortpay_cart WHERE id_cart = ' . (int) $id_cart;
+        return Db::getInstance()->getValue($sql);
     }
 }

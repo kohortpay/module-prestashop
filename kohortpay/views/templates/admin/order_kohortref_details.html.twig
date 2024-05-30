@@ -1,0 +1,46 @@
+{#**
+ * 2007-2020 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License 3.0 (AFL-3.0).
+ * It is also available through the world-wide-web at this URL: https://opensource.org/licenses/AFL-3.0
+ *#}
+
+
+<div class="card mt-2">
+  <div class="card-header">
+    <div class="row">
+        <h3 class="card-header-title">
+            {{ 'KohortRef'|trans }}
+        </h3>
+        <div class="text-right">
+            <a href="{{ payment_group_url }}" target="_blank">
+                <i class="material-icons">open_in_new</i>
+                {{ 'Open group page'|trans }}
+            </a>
+        </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <ul>
+        <li>
+            <strong>{{ 'Payment Group ID'|trans }}:</strong> {{ payment_group_id }}
+        </li>
+        <li>
+            <strong>{{ 'Payment Group Share ID'|trans }}:</strong> {{ payment_group_share_id }}
+        </li>
+        <li>
+            <strong>{{ 'Payment Group Status'|trans }}:</strong> {{ payment_group_status }}
+        </li>
+        {# is_payment_group_owner is bolean and should display Yes & No as badges #}
+        <li>
+            <strong>{{ 'Is Payment Group Owner'|trans }}:</strong> <span class="badge badge-{{ is_payment_group_owner ? 'success' : 'danger' }}">{{ is_payment_group_owner ? 'Yes' : 'No' }}</span>
+        </li>
+        <li>
+            <strong>{{ 'Payment Group URL'|trans }}:</strong> <a href="{{ payment_group_url }}" target="_blank">{{ payment_group_url }}</a>
+        </li>
+    </ul>
+  </div>
+</div>
