@@ -1,6 +1,9 @@
 # Official KohortPay Prestashop module
 
-This module adds a new payment method to PrestaShop: `KohortPay`, which allows you to lower your acquisition costs by turning your customers into your brands advocates. They will have the opportunity to invite all their friends to buy more on your store in exchange for cashback.
+This module allows you to lower your acquisition costs by turning your customers into your brands advocates. They will have the opportunity to invite all their friends to buy more on your store in exchange for cashback.
+It includes two isolated features : 
+- Either you add a new payment method offering a referral program directly from the payment page : `KohortPay`
+- Or you add a referral program whithin the discount code field on the cart page : `KohortRef`
 
 
 ## Table of content
@@ -14,17 +17,25 @@ This module adds a new payment method to PrestaShop: `KohortPay`, which allows y
     - [Version](#version)
     - [Licence](#licence)
     - [Compabilities and Restrictions](#compabilities-and-restrictions)
-    - [Features](#features)
+    - [Features KohortPay](#features-kohortpay)
+    - [Features KohortRef](#features-kohortref)
   - [Installation](#installation)
     - [Using ZIP](#using-zip)
     - [Using Prestashop marketplace](#using-prestashop-marketplace)
     - [Using Symfony CLI](#using-symfony-cli)
     - [Using Composer](#using-composer)
-  - [Configuration](#configuration)
+  - [Configuration KohortPay](#configuration-kohortpay)
     - [Prerequisites](#prerequisites)
     - [Activation](#activation)
     - [API Secret Key](#api-secret-key)
     - [Minimum amount](#minimum-amount)
+  - [Configuration KohortRef](#configuration-kohortref)
+    - [Prerequisites](#prerequisites-1)
+    - [Activation](#activation-1)
+    - [API Secret Key](#api-secret-key-1)
+    - [WEBHOOK Secret Key](#webhook-secret-key)
+    - [Payment Methods](#payment-methods)
+    - [Minimum amount](#minimum-amount-1)
   - [Demo](#demo)
   - [Testing](#testing)
     - [Requirements](#requirements)
@@ -52,7 +63,7 @@ KohortPay lets your customers pay, refer and save on every purchase. Cut your cu
 ## Module overview
 
 ### Version
-Current version is 1.0.4. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
+Current version is 1.1.0. See all [releases here](https://github.com/kohortpay/module-prestashop/releases).
 
 ### Licence
 The module and this repository is under MIT License. 
@@ -63,13 +74,22 @@ The module and this repository is under MIT License.
 - Works and has been tested with Prestashop 1.7 and 8 (should work with Prestashop 1.6 but not tested, use at your own risk).
 - You should use only 2 decimals for your price and round them on each item.
 
-### Features
+### Features KohortPay
 - Add a new payment method that you customer will love (Pay less, together)
 - Redirect to an awesome and customized payment page (using you customer cart details).
 - Enable/disable the module by a simple switch through the settings.
 - Possibility to set minimun amount, under which the payment is disabled. 
 - Easy way to switch live/test mode by filling you API secret key (sk or sk_test).
 - Handle API errors (with more details if Prestashop is in debug mode).
+
+### Features KohortRef
+- Add a new referral program that you customer will love (Pay less, together).
+- All orders will create a new referral group (if module is enabled for the specific payment method).
+- Customers can join a group by adding the referral code inside discount code field on the cart page.
+- Enable/disable the module by a simple switch through the settings.
+- Possibility to set minimun amount, under which the group is not created.
+- Easy way to switch live/test mode by filling you API secret key (sk or sk_test).
+- Display API errors in Prestashop Log system.
 
 ## Installation
 
@@ -92,7 +112,7 @@ Coming soon...
 
 Coming soon...
 
-## Configuration
+## Configuration KohortPay
 
 ### Prerequisites
 - You should have a KohortPay account. If it's not the case, you can [register here](https://dashboard.kohortpay.com/sign-up).
@@ -101,6 +121,7 @@ Coming soon...
 ### Activation
 
 You can display or hide the KohortPay payment method from you checkout page using this configuration (enabled/disabled).
+*Nota Bene* : KohortPay and KohortRef could not be enabled at the same time.
 
 ### API Secret Key
 
@@ -110,6 +131,36 @@ Start with sk_ or sk_test (for test mode).
 ### Minimum amount
 
 You can define here the total order minimum amount to display the KohortPay payment method (minimum 30€).
+
+## Configuration KohortRef
+
+### Prerequisites
+- You should have a KohortRef account. If it's not the case, you can [register here](https://dashboard.kohortpay.com/sign-up).
+- You should have installed the module on your Prestashop instance and have access to its settings page.
+
+### Activation
+
+Must be enabled to let your customers refer with KohortRef.
+*Nota Bene* : KohortPay and KohortRef could not be enabled at the same time.
+
+### API Secret Key
+
+Found in KohortPay Dashboard > Developer settings > API Keys.
+Start with sk_ or sk_test (for test mode).
+
+### WEBHOOK Secret Key
+
+Found in KohortPay Dashboard > Developer settings > Webhooks > Secret Key.
+Start with whsec_.
+
+### Payment Methods
+
+Select which payment method is able to create a referral group.
+*Nota Bene* : Please select payment method who offer refund mechanism from Prestashop back-office.
+
+### Minimum amount
+
+You can define here the total order minimum amount to create or join a referral group (minimum 30€).
 
 ## Demo
 
