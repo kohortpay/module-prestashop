@@ -26,182 +26,185 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
 if (!defined('_PS_VERSION_')) {
-    exit;
+  exit();
 }
 
 class KohortpayRedirectModuleFrontController extends ModuleFrontController
 {
-    /**
-     * Make POST call to KohortPay API to generate checkout session and then redirect customer to the payment page.
-     */
-    public function postProcess()
-    {
-        $client = new Client();
-        try {
-            $response = $client->post('https://api.kohortpay.com/checkout-sessions', [
-              'headers' => [
-                'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
-              ],
-              'json' => $this->getCheckoutSessionJson(),
-            ]);
-            $checkoutSession = json_decode($response->getBody()->getContents(), true);
-            if (isset($checkoutSession['url'])) {
-                Tools::redirect($checkoutSession['url']);
-            }
-        } catch (ClientException $e) {
-            if (_PS_MODE_DEV_) {
-                var_dump($this->getCheckoutSessionJson());
-            }
-            if ($e->hasResponse()) {
-                $errorResponse = json_decode(
-                    $e
-                    ->getResponse()
-                    ->getBody()
-                    ->getContents(),
-                    true
-                );
-                if (isset($errorResponse['error']['message'])) {
-                    return $this->displayError($errorResponse['error']['message']);
-                }
-            }
-            return $this->displayError(
-                $this->module->l(
-                    'An error occurred while trying to redirect the customer. Please contact the merchant to have more informations'
-                )
-            );
+  /**
+   * Make POST call to KohortPay API to generate checkout session and then redirect customer to the payment page.
+   */
+  public function postProcess()
+  {
+    $client = new Client();
+    try {
+      $response = $client->post('https://api.kohortpay.dev/checkout-sessions', [
+        'headers' => [
+          'Authorization' =>
+            'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
+        ],
+        'json' => $this->getCheckoutSessionJson(),
+      ]);
+      $checkoutSession = json_decode($response->getBody()->getContents(), true);
+      if (isset($checkoutSession['url'])) {
+        Tools::redirect($checkoutSession['url']);
+      }
+    } catch (ClientException $e) {
+      if (_PS_MODE_DEV_) {
+        var_dump($this->getCheckoutSessionJson());
+      }
+      if ($e->hasResponse()) {
+        $errorResponse = json_decode(
+          $e
+            ->getResponse()
+            ->getBody()
+            ->getContents(),
+          true
+        );
+        if (isset($errorResponse['error']['message'])) {
+          return $this->displayError($errorResponse['error']['message']);
         }
+      }
+      return $this->displayError(
+        $this->module->l(
+          'An error occurred while trying to redirect the customer. Please contact the merchant to have more informations'
+        )
+      );
     }
+  }
 
-    /**
-     * Build and get checkout session JSON object to send to the API.
-     */
-    protected function getCheckoutSessionJson()
-    {
-        // Customer information
-        $json['customerFirstName'] = Context::getContext()->customer->firstname;
-        $json['customerLastName'] = Context::getContext()->customer->lastname;
-        $json['customerEmail'] = Context::getContext()->customer->email;
-        // $json['customerPhoneNumber'] = Context::getContext()->customer->phone;
+  /**
+   * Build and get checkout session JSON object to send to the API.
+   */
+  protected function getCheckoutSessionJson()
+  {
+    // Customer information
+    $json['customerFirstName'] = Context::getContext()->customer->firstname;
+    $json['customerLastName'] = Context::getContext()->customer->lastname;
+    $json['customerEmail'] = Context::getContext()->customer->email;
+    // $json['customerPhoneNumber'] = Context::getContext()->customer->phone;
 
-        // Return URLs
-        $json['successUrl'] = $this->context->link->getModuleLink(
-            'kohortpay',
-            'confirmation',
-            [
-            'action' => 'success',
-            'cart_id' => Context::getContext()->cart->id,
-            'secure_key' => Context::getContext()->customer->secure_key,
+    // Return URLs
+    $json['successUrl'] = $this->context->link->getModuleLink(
+      'kohortpay',
+      'confirmation',
+      [
+        'action' => 'success',
+        'cart_id' => Context::getContext()->cart->id,
+        'secure_key' => Context::getContext()->customer->secure_key,
       ]
-        );
-        // Cancel URL should integrate the Prestashop language code
-        $json['cancelUrl'] = $this->context->link->getPageLink('order');
+    );
+    // Cancel URL should integrate the Prestashop language code
+    $json['cancelUrl'] = $this->context->link->getPageLink('order');
 
-        // Locale & currency
-        $languageCode = explode(
-            '-',
-            Context::getContext()->language->language_code
-        );
-        if (!isset($languageCode[1])) {
-            $languageCode[1] = $languageCode[0];
-        }
-        $json['locale'] = $languageCode[0] . '_' . strtoupper($languageCode[1]);
-        // $json['currency'] = Context::getContext()->currency->iso_code;
+    // Locale & currency
+    $languageCode = explode(
+      '-',
+      Context::getContext()->language->language_code
+    );
+    if (!isset($languageCode[1])) {
+      $languageCode[1] = $languageCode[0];
+    }
+    $json['locale'] = $languageCode[0] . '_' . strtoupper($languageCode[1]);
+    // $json['currency'] = Context::getContext()->currency->iso_code;
 
-        // Order information
-        $json['amountTotal'] = $this->cleanPrice(
-            Context::getContext()->cart->getOrderTotal()
-        );
+    // Order information
+    $json['amountTotal'] = $this->cleanPrice(
+      Context::getContext()->cart->getOrderTotal()
+    );
 
-        // Line items
-        $json['lineItems'] = [];
-        // Products
-        foreach (Context::getContext()->cart->getProducts() as $product) {
-            $json['lineItems'][] = [
-              'name' => $this->cleanString($product['name']),
-              'description' => $this->cleanString($product['description_short']),
-              'price' => $this->cleanPrice($product['price_wt']),
-              'quantity' => $product['cart_quantity'],
-              'type' => 'PRODUCT',
-              'image_url' => $this->context->link->getImageLink(
-                  $product['link_rewrite'],
-                  $product['id_image'],
-                  ImageType::getFormattedName('home')
-              ),
-            ];
-        }
-        // Discounts
-        foreach (Context::getContext()->cart->getCartRules() as $cartRule) {
-            $json['lineItems'][] = [
-              'name' => $this->cleanString($cartRule['name']),
-              'price' => $this->cleanPrice($cartRule['value_real']) * -1,
-              'quantity' => 1,
-              'type' => 'DISCOUNT',
-            ];
-        }
-        // Shipping
-        $json['lineItems'][] = [
-          'name' => $this->getCarrierName(Context::getContext()->cart->id_carrier),
-          'price' => $this->cleanPrice(
-              Context::getContext()->cart->getTotalShippingCost()
-          ),
-          'quantity' => 1,
-          'type' => 'SHIPPING',
-        ];
+    // Line items
+    $json['lineItems'] = [];
+    // Products
+    foreach (Context::getContext()->cart->getProducts() as $product) {
+      $json['lineItems'][] = [
+        'name' => $this->cleanString($product['name']),
+        'description' => $this->cleanString($product['description_short']),
+        'price' => $this->cleanPrice($product['price_wt']),
+        'quantity' => $product['cart_quantity'],
+        'type' => 'PRODUCT',
+        'image_url' => $this->context->link->getImageLink(
+          $product['link_rewrite'],
+          $product['id_image'],
+          ImageType::getFormattedName('home')
+        ),
+      ];
+    }
+    // Discounts
+    foreach (Context::getContext()->cart->getCartRules() as $cartRule) {
+      $json['lineItems'][] = [
+        'name' => $this->cleanString($cartRule['name']),
+        'price' => $this->cleanPrice($cartRule['value_real']) * -1,
+        'quantity' => 1,
+        'type' => 'DISCOUNT',
+      ];
+    }
+    // Shipping
+    $json['lineItems'][] = [
+      'name' => $this->getCarrierName(Context::getContext()->cart->id_carrier),
+      'price' => $this->cleanPrice(
+        Context::getContext()->cart->getTotalShippingCost()
+      ),
+      'quantity' => 1,
+      'type' => 'SHIPPING',
+    ];
 
-        // Metadata
-        $json['metadata'] = [
-          'cart_id' => Context::getContext()->cart->id,
-          'customer_id' => Context::getContext()->customer->id,
-        ];
+    // Metadata
+    $json['client_reference_id'] = (string) Context::getContext()->cart->id;
+    $json['payment_client_reference_id'] = (string) Context::getContext()->cart->id;
+    $json['metadata'] = [
+      'cart_id' => Context::getContext()->cart->id,
+      'customer_id' => Context::getContext()->customer->id,
+    ];
 
-        return $json;
+    return $json;
+  }
+
+  /**
+   * Get carrier name from id.
+   */
+  protected function getCarrierName($idCarrier)
+  {
+    $carrier = new Carrier($idCarrier);
+    return $this->cleanString($carrier->name);
+  }
+
+  /**
+   * Clean string to avoid XSS.
+   */
+  protected function cleanString($string)
+  {
+    $string = strip_tags($string);
+
+    return $string;
+  }
+
+  /**
+   * Clean price to avoid price with more than 2 decimals.
+   */
+  protected function cleanPrice($price)
+  {
+    $price = $price * 100;
+    $price = round($price, 0);
+
+    return $price;
+  }
+
+  /**
+   * Display error messages.
+   */
+  protected function displayError($errors)
+  {
+    if (!is_array($errors)) {
+      $errors = [$errors];
     }
 
-    /**
-     * Get carrier name from id.
-     */
-    protected function getCarrierName($idCarrier)
-    {
-        $carrier = new Carrier($idCarrier);
-        return $this->cleanString($carrier->name);
-    }
+    $this->context->smarty->assign([
+      'errors' => $errors,
+    ]);
 
-    /**
-     * Clean string to avoid XSS.
-     */
-    protected function cleanString($string)
-    {
-        $string = strip_tags($string);
-
-        return $string;
-    }
-
-    /**
-     * Clean price to avoid price with more than 2 decimals.
-     */
-    protected function cleanPrice($price)
-    {
-        $price = $price * 100;
-        $price = round($price, 0);
-
-        return $price;
-    }
-
-    /**
-     * Display error messages.
-     */
-    protected function displayError($errors)
-    {
-        if (!is_array($errors)) {
-            $errors = [$errors];
-        }
-
-        $this->context->smarty->assign([
-          'errors' => $errors,
-        ]);
-
-        return $this->setTemplate(
-            'module:kohortpay/views/templates/front/error.tpl'
-        );
-    }
+    return $this->setTemplate(
+      'module:kohortpay/views/templates/front/error.tpl'
+    );
+  }
 }
