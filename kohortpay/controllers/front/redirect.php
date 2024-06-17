@@ -40,8 +40,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     try {
       $response = $client->post('https://api.kohortpay.dev/checkout-sessions', [
         'headers' => [
-          'Authorization' =>
-            'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
+          'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
         ],
         'json' => $this->getCheckoutSessionJson(),
       ]);
@@ -85,23 +84,16 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     // $json['customerPhoneNumber'] = Context::getContext()->customer->phone;
 
     // Return URLs
-    $json['successUrl'] = $this->context->link->getModuleLink(
-      'kohortpay',
-      'confirmation',
-      [
-        'action' => 'success',
-        'cart_id' => Context::getContext()->cart->id,
-        'secure_key' => Context::getContext()->customer->secure_key,
-      ]
-    );
+    $json['successUrl'] = $this->context->link->getModuleLink('kohortpay', 'confirmation', [
+      'action' => 'success',
+      'cart_id' => Context::getContext()->cart->id,
+      'secure_key' => Context::getContext()->customer->secure_key,
+    ]);
     // Cancel URL should integrate the Prestashop language code
     $json['cancelUrl'] = $this->context->link->getPageLink('order');
 
     // Locale & currency
-    $languageCode = explode(
-      '-',
-      Context::getContext()->language->language_code
-    );
+    $languageCode = explode('-', Context::getContext()->language->language_code);
     if (!isset($languageCode[1])) {
       $languageCode[1] = $languageCode[0];
     }
@@ -109,9 +101,7 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     // $json['currency'] = Context::getContext()->currency->iso_code;
 
     // Order information
-    $json['amountTotal'] = $this->cleanPrice(
-      Context::getContext()->cart->getOrderTotal()
-    );
+    $json['amountTotal'] = $this->cleanPrice(Context::getContext()->cart->getOrderTotal());
 
     // Line items
     $json['lineItems'] = [];
@@ -142,16 +132,13 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     // Shipping
     $json['lineItems'][] = [
       'name' => $this->getCarrierName(Context::getContext()->cart->id_carrier),
-      'price' => $this->cleanPrice(
-        Context::getContext()->cart->getTotalShippingCost()
-      ),
+      'price' => $this->cleanPrice(Context::getContext()->cart->getTotalShippingCost()),
       'quantity' => 1,
       'type' => 'SHIPPING',
     ];
 
     // Metadata
     $json['client_reference_id'] = (string) Context::getContext()->cart->id;
-    $json['payment_client_reference_id'] = (string) Context::getContext()->cart->id;
     $json['metadata'] = [
       'cart_id' => Context::getContext()->cart->id,
       'customer_id' => Context::getContext()->customer->id,
@@ -203,8 +190,6 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
       'errors' => $errors,
     ]);
 
-    return $this->setTemplate(
-      'module:kohortpay/views/templates/front/error.tpl'
-    );
+    return $this->setTemplate('module:kohortpay/views/templates/front/error.tpl');
   }
 }
