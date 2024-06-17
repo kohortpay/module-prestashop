@@ -50,9 +50,7 @@ class Kohortpay extends PaymentModule
       'Social payment method : Pay less, together. Turn your customer into your brand advocates.'
     );
 
-    $this->confirmUninstall = $this->l(
-      'Are you sure you want to uninstall KohortPay ?'
-    );
+    $this->confirmUninstall = $this->l('Are you sure you want to uninstall KohortPay ?');
 
     $this->limited_currencies = ['EUR', 'USD'];
 
@@ -68,9 +66,7 @@ class Kohortpay extends PaymentModule
   public function install()
   {
     if (extension_loaded('curl') == false) {
-      $this->_errors[] = $this->l(
-        'You have to enable the cURL extension on your server to install this module'
-      );
+      $this->_errors[] = $this->l('You have to enable the cURL extension on your server to install this module');
       return false;
     }
 
@@ -84,11 +80,7 @@ class Kohortpay extends PaymentModule
 
     include dirname(__FILE__) . '/sql/install.php';
 
-    $hooks = [
-      'paymentOptions',
-      'actionPaymentConfirmation',
-      'actionPresentCart',
-    ];
+    $hooks = ['paymentOptions', 'actionPaymentConfirmation', 'actionPresentCart'];
 
     return parent::install() && $this->registerHook($hooks);
   }
@@ -119,9 +111,7 @@ class Kohortpay extends PaymentModule
 
     $this->context->smarty->assign('module_dir', $this->_path);
 
-    $output = $this->context->smarty->fetch(
-      $this->local_path . 'views/templates/admin/configure.tpl'
-    );
+    $output = $this->context->smarty->fetch($this->local_path . 'views/templates/admin/configure.tpl');
 
     return $output . $this->renderForm();
   }
@@ -137,10 +127,7 @@ class Kohortpay extends PaymentModule
     $helper->table = $this->table;
     $helper->module = $this;
     $helper->default_form_language = $this->context->language->id;
-    $helper->allow_employee_form_lang = Configuration::get(
-      'PS_BO_ALLOW_EMPLOYEE_FORM_LANG',
-      0
-    );
+    $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
 
     $helper->identifier = $this->identifier;
     $helper->submit_action = 'submitKohortpayModule';
@@ -160,10 +147,7 @@ class Kohortpay extends PaymentModule
       'id_language' => $this->context->language->id,
     ];
 
-    return $helper->generateForm([
-      $this->getConfigForm(),
-      $this->getConfigFormRef(),
-    ]);
+    return $helper->generateForm([$this->getConfigForm(), $this->getConfigFormRef()]);
   }
 
   /**
@@ -183,9 +167,7 @@ class Kohortpay extends PaymentModule
             'label' => $this->l('Activate'),
             'name' => 'KOHORTPAY_LIVE_MODE',
             'is_bool' => true,
-            'desc' => $this->l(
-              'Must be enabled to display KohortPay in your checkout page.'
-            ),
+            'desc' => $this->l('Must be enabled to display KohortPay in your checkout page.'),
             'values' => [
               [
                 'id' => 'active_on',
@@ -214,9 +196,7 @@ class Kohortpay extends PaymentModule
             'class' => 'fixed-width-md',
             'prefix' => $this->context->currency->iso_code,
             'label' => $this->l('Minimum amount'),
-            'desc' => $this->l(
-              'Minimum total order amount to display KohortPay in your checkout page.'
-            ),
+            'desc' => $this->l('Minimum total order amount to display KohortPay in your checkout page.'),
           ],
         ],
         'submit' => [
@@ -243,9 +223,7 @@ class Kohortpay extends PaymentModule
             'label' => $this->l('Activate'),
             'name' => 'KOHORTREF_LIVE_MODE',
             'is_bool' => true,
-            'desc' => $this->l(
-              'Must be enabled to let your customers refer with KohortRef.'
-            ),
+            'desc' => $this->l('Must be enabled to let your customers refer with KohortRef.'),
             'values' => [
               [
                 'id' => 'active_on',
@@ -273,9 +251,7 @@ class Kohortpay extends PaymentModule
             'name' => 'KOHORTPAY_WEBHOOK_SECRET_KEY',
             'class' => 'fixed-width-xl',
             'label' => $this->l('WEBHOOK Secret Key'),
-            'desc' => $this->l(
-              'Found in KohortPay Dashboard > Developer settings. Start with whsec_.'
-            ),
+            'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with whsec_.'),
           ],
           [
             'type' => 'text',
@@ -289,9 +265,7 @@ class Kohortpay extends PaymentModule
             'type' => 'checkbox',
             'label' => $this->l('Available payment methods'),
             'name' => 'KOHORTREF_PAYMENT_METHODS',
-            'desc' => $this->l(
-              'Select the payment methods you want to enable for KohortRef.'
-            ),
+            'desc' => $this->l('Select the payment methods you want to enable for KohortRef.'),
             // Static values
             'values' => [
               'query' => $this->getActivePaymentMethodsList(),
@@ -304,9 +278,7 @@ class Kohortpay extends PaymentModule
             'label' => $this->l('Debug mode'),
             'name' => 'KOHORTPAY_DEBUG_MODE',
             'is_bool' => true,
-            'desc' => $this->l(
-              'Add additional logs to help you debug KohortRef.'
-            ),
+            'desc' => $this->l('Add additional logs to help you debug KohortRef.'),
             'values' => [
               [
                 'id' => 'active_on',
@@ -336,28 +308,17 @@ class Kohortpay extends PaymentModule
     $configFormValues = [
       'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', false),
       'KOHORTREF_LIVE_MODE' => Configuration::get('KOHORTREF_LIVE_MODE', false),
-      'KOHORTPAY_DEBUG_MODE' => Configuration::get(
-        'KOHORTPAY_DEBUG_MODE',
-        false
-      ),
-      'KOHORTPAY_API_SECRET_KEY' => Configuration::get(
-        'KOHORTPAY_API_SECRET_KEY',
-        null
-      ),
-      'KOHORTPAY_WEBHOOK_SECRET_KEY' => Configuration::get(
-        'KOHORTPAY_WEBHOOK_SECRET_KEY',
-        null
-      ),
-      'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get(
-        'KOHORTPAY_MINIMUM_AMOUNT',
-        30
-      ),
+      'KOHORTPAY_DEBUG_MODE' => Configuration::get('KOHORTPAY_DEBUG_MODE', false),
+      'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
+      'KOHORTPAY_WEBHOOK_SECRET_KEY' => Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY', null),
+      'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 30),
     ];
 
     foreach ($this->getActivePaymentMethodsList() as $paymentMethod) {
-      $configFormValues[
-        'KOHORTREF_PAYMENT_METHODS_' . $paymentMethod['id']
-      ] = in_array($paymentMethod['id'], $this->getKohortRefPaymentMethods());
+      $configFormValues['KOHORTREF_PAYMENT_METHODS_' . $paymentMethod['id']] = in_array(
+        $paymentMethod['id'],
+        $this->getKohortRefPaymentMethods()
+      );
     }
 
     return $configFormValues;
@@ -371,34 +332,24 @@ class Kohortpay extends PaymentModule
     $form_values = $this->getConfigFormValues();
 
     // KOHORTPAY_LIVE_MODE & KOHORTREF_LIVE_MODE could not be enabled at the same time
-    if (
-      Tools::getValue('KOHORTPAY_LIVE_MODE') &&
-      Tools::getValue('KOHORTREF_LIVE_MODE')
-    ) {
-      $this->context->controller->errors[] = $this->l(
-        'KohortPay and KohortRef could not be enabled at the same time.'
-      );
+    if (Tools::getValue('KOHORTPAY_LIVE_MODE') && Tools::getValue('KOHORTREF_LIVE_MODE')) {
+      $this->context->controller->errors[] = $this->l('KohortPay and KohortRef could not be enabled at the same time.');
       return false;
     }
 
     // Validate KOHORTPAY_MINIMUM_AMOUNT field is a valid price
     if (!Validate::isPrice(Tools::getValue('KOHORTPAY_MINIMUM_AMOUNT'))) {
-      $this->context->controller->errors[] = $this->l(
-        'Invalid value for minimum amount.'
-      );
+      $this->context->controller->errors[] = $this->l('Invalid value for minimum amount.');
       return false;
     }
 
     // KOHORTPAY_API_SECRET_KEY is required if KohortPay or KohortRef live mode is enabled
     if (
-      (Tools::getValue('KOHORTPAY_LIVE_MODE') ||
-        Tools::getValue('KOHORTREF_LIVE_MODE')) &&
+      (Tools::getValue('KOHORTPAY_LIVE_MODE') || Tools::getValue('KOHORTREF_LIVE_MODE')) &&
       !Tools::getValue('KOHORTPAY_API_SECRET_KEY') &&
       !Configuration::get('KOHORTPAY_API_SECRET_KEY')
     ) {
-      $this->context->controller->errors[] = $this->l(
-        'API Secret Key is required.'
-      );
+      $this->context->controller->errors[] = $this->l('API Secret Key is required.');
       return false;
     }
 
@@ -408,38 +359,25 @@ class Kohortpay extends PaymentModule
       !Tools::getValue('KOHORTPAY_WEBHOOK_SECRET_KEY') &&
       !Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY')
     ) {
-      $this->context->controller->errors[] = $this->l(
-        'WEBHOOK Secret Key is required.'
-      );
+      $this->context->controller->errors[] = $this->l('WEBHOOK Secret Key is required.');
       return false;
     }
 
     $kohortRefPaymentMethods = [];
     foreach (array_keys($form_values) as $key) {
       // If KOHORTPAY_API_SECRET_KEY value is empty but configuration value is not, use the configuration value
-      if (
-        $key == 'KOHORTPAY_API_SECRET_KEY' &&
-        !Tools::getValue($key) &&
-        Configuration::get($key)
-      ) {
+      if ($key == 'KOHORTPAY_API_SECRET_KEY' && !Tools::getValue($key) && Configuration::get($key)) {
         Configuration::updateValue($key, Configuration::get($key));
         continue;
       }
       // If KOHORTPAY_WEBHOOK_SECRET_KEY value is empty but configuration value is not, use the configuration value
-      if (
-        $key == 'KOHORTPAY_WEBHOOK_SECRET_KEY' &&
-        !Tools::getValue($key) &&
-        Configuration::get($key)
-      ) {
+      if ($key == 'KOHORTPAY_WEBHOOK_SECRET_KEY' && !Tools::getValue($key) && Configuration::get($key)) {
         Configuration::updateValue($key, Configuration::get($key));
         continue;
       }
 
       // If $key includes KOHORTREF_PAYMENT_METHODS_ then add to $kohortRefPaymentMethods
-      if (
-        strpos($key, 'KOHORTREF_PAYMENT_METHODS_') !== false &&
-        Tools::getValue($key)
-      ) {
+      if (strpos($key, 'KOHORTREF_PAYMENT_METHODS_') !== false && Tools::getValue($key)) {
         $kohortRefPaymentMethods[] = Tools::getValue($key);
         continue;
       }
@@ -447,10 +385,7 @@ class Kohortpay extends PaymentModule
       Configuration::updateValue($key, Tools::getValue($key));
     }
 
-    Configuration::updateValue(
-      'KOHORTREF_PAYMENT_METHODS',
-      serialize($kohortRefPaymentMethods)
-    );
+    Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize($kohortRefPaymentMethods));
 
     $this->context->controller->confirmations[] = $this->l('Settings updated');
   }
@@ -479,30 +414,16 @@ class Kohortpay extends PaymentModule
       return;
     }
 
-    if (
-      $cart->getOrderTotal() < Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')
-    ) {
+    if ($cart->getOrderTotal() < Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')) {
       return;
     }
 
     $option = new PaymentOption();
     $option
-      ->setLogo(
-        Media::getMediaPath(
-          _PS_MODULE_DIR_ .
-            $this->name .
-            '/views/img/kohortpay_logo_payment.png'
-        )
-      )
+      ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/kohortpay_logo_payment.png'))
       ->setCallToActionText($this->l('Pay, share and save up to 20% off'))
-      ->setAdditionalInformation(
-        $this->l(
-          'Save money and so does your friend, from the first friend you invite.'
-        )
-      )
-      ->setAction(
-        $this->context->link->getModuleLink($this->name, 'redirect', [], true)
-      );
+      ->setAdditionalInformation($this->l('Save money and so does your friend, from the first friend you invite.'))
+      ->setAction($this->context->link->getModuleLink($this->name, 'redirect', [], true));
 
     return [$option];
   }
@@ -594,8 +515,7 @@ class Kohortpay extends PaymentModule
         'name' => 'Cashback unlocked',
         'free_shipping' => false,
         'reduction_formatted' => '-10%',
-        'delete_url' =>
-          $this->context->link->getPageLink('cart', true) . '?leaveGroup',
+        'delete_url' => $this->context->link->getPageLink('cart', true) . '?leaveGroup',
       ];
     }
 
@@ -653,12 +573,10 @@ class Kohortpay extends PaymentModule
       'type' => 'SHIPPING',
     ];
 
-    $transaction_id = OrderPayment::getByOrderReference($order->reference)
-      ->transaction_id;
-    $json['client_reference_id'] = $order->reference;
-    $json['payment_client_reference_id'] = $transaction_id
-      ? $transaction_id
-      : $order->reference;
+    // @TODO : Add transaction_id to payment_client_reference_id
+    //$transaction_id = OrderPayment::getByOrderReference($order->reference)->transaction_id;
+    $json['client_reference_id'] = (string) $order->id;
+    $json['payment_client_reference_id'] = (string) $order->id;
     $shareId = $this->getShareIdByIdCart($cart->id);
     if ($shareId) {
       $json['payment_group_share_id'] = $shareId;
@@ -666,7 +584,7 @@ class Kohortpay extends PaymentModule
 
     // Metadata
     $json['metadata'] = [
-      'order_id' => $order->reference,
+      'order_id' => $order->id,
       'cart_id' => $cart->id,
       'customer_id' => $customer->id,
     ];
@@ -679,27 +597,20 @@ class Kohortpay extends PaymentModule
    */
   protected function sendOrder($orderId, $orderJson)
   {
-    $this->LogOrderMessage(
-      'Sending order to KohortREF API with this JSON : ' .
-        json_encode($orderJson),
-      $orderId,
-      1
-    );
+    $this->LogOrderMessage('Sending order to KohortREF API with this JSON : ' . json_encode($orderJson), $orderId, 1);
 
     $client = new Client();
     try {
       $response = $client->post('https://api.kohortpay.dev/checkout-sessions', [
         'headers' => [
-          'Authorization' =>
-            'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
+          'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
         ],
         'json' => $orderJson,
       ]);
 
       $responseArray = json_decode($response->getBody()->getContents(), true);
       $this->LogOrderMessage(
-        'Order sent to KohortPay API with success. Checkout session ID : ' .
-          $responseArray['id'],
+        'Order sent to KohortPay API with success. Checkout session ID : ' . $responseArray['id'],
         $orderId,
         1
       );
@@ -717,10 +628,7 @@ class Kohortpay extends PaymentModule
           return;
         }
       }
-      $this->LogOrderMessage(
-        'An error occurred while trying to call KohortPay API to send order.',
-        $orderId
-      );
+      $this->LogOrderMessage('An error occurred while trying to call KohortPay API to send order.', $orderId);
     }
   }
 
@@ -768,14 +676,7 @@ class Kohortpay extends PaymentModule
       $message = implode(', ', (array) $message);
     }
 
-    PrestaShopLogger::addLog(
-      $message,
-      $severity,
-      null,
-      'Order',
-      (int) $orderId,
-      true
-    );
+    PrestaShopLogger::addLog($message, $severity, null, 'Order', (int) $orderId, true);
   }
 
   /**
@@ -806,10 +707,7 @@ class Kohortpay extends PaymentModule
    */
   protected function getKohortRefPaymentMethods()
   {
-    $paymentMethods = Configuration::get(
-      'KOHORTREF_PAYMENT_METHODS',
-      serialize([])
-    );
+    $paymentMethods = Configuration::get('KOHORTREF_PAYMENT_METHODS', serialize([]));
     if (!$paymentMethods) {
       return [];
     }
@@ -821,11 +719,7 @@ class Kohortpay extends PaymentModule
    */
   public static function getShareIdByIdCart($id_cart)
   {
-    $sql =
-      'SELECT share_id FROM ' .
-      _DB_PREFIX_ .
-      'kohortpay_cart WHERE id_cart = ' .
-      (int) $id_cart;
+    $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'kohortpay_cart WHERE id_cart = ' . (int) $id_cart;
     return Db::getInstance()->getValue($sql);
   }
 }
