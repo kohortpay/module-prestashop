@@ -503,17 +503,16 @@ class Kohortpay extends PaymentModule
 
     // If share_id is present in the cart, we add it to the cart
     $sql = new DbQuery();
-    $sql->select('share_id');
-    $sql->from('kohortpay_cart');
+    $sql->select('share_id', 'cashback_amount');
+    $sql->from('referral_cart');
     $sql->where('id_cart = ' . (int) $this->context->cart->id);
 
     if (Db::getInstance()->getValue($sql)) {
       $params['presentedCart']['vouchers']['added'][] = [
         'id_cart_rule' => 0,
-        'name' => 'Cashback unlocked',
+        'name' => $this->l('Cashback unlocked'),
         'free_shipping' => false,
-        'reduction_formatted' => '-10%',
-        'delete_url' => $this->context->link->getPageLink('cart', true) . '?leaveGroup',
+        'reduction_formatted' => Tools::displayPrice(Db::getInstance()->getValue($sql, true)['cashback_amount']),
       ];
     }
 
@@ -713,11 +712,11 @@ class Kohortpay extends PaymentModule
   }
 
   /**
-   * Make a query to kohortpay_cart table to get share_id with parameter id_cart
+   * Make a query to referral_cart table to get share_id with parameter id_cart
    */
   public static function getShareIdByIdCart($id_cart)
   {
-    $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'kohortpay_cart WHERE id_cart = ' . (int) $id_cart;
+    $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'referral_cart WHERE id_cart = ' . (int) $id_cart;
     return Db::getInstance()->getValue($sql);
   }
 }

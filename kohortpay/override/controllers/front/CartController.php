@@ -39,21 +39,11 @@ class CartController extends CartControllerCore
 
     if (Tools::getIsset('addDiscount')) {
       if (!($code = trim(Tools::getValue('discount_name')))) {
-        $this->errors[] = $this->trans(
-          'You must enter a voucher code.',
-          [],
-          'Shop.Notifications.Error'
-        );
+        $this->errors[] = $this->trans('You must enter a voucher code.', [], 'Shop.Notifications.Error');
       } elseif (!Validate::isCleanHtml($code)) {
-        $this->errors[] = $this->trans(
-          'The voucher code is invalid.',
-          [],
-          'Shop.Notifications.Error'
-        );
+        $this->errors[] = $this->trans('The voucher code is invalid.', [], 'Shop.Notifications.Error');
       } elseif (substr($code, 0, 3) === 'KHT') {
-        if ($this->validateKohortCode($code)) {
-          $this->saveKohortCodeInDatabase($code);
-        }
+        $this->validateReferralCode($code);
         return;
       }
     }
@@ -64,7 +54,7 @@ class CartController extends CartControllerCore
   /**
    * Make API POST call to send order to KohortRef.
    */
-  protected function validateKohortCode($code)
+  protected function validateReferralCode($code)
   {
     $additionnalInfo = [
       'amount' => round($this->context->cart->getOrderTotal() * 100),
@@ -72,16 +62,15 @@ class CartController extends CartControllerCore
 
     $client = new Client();
     try {
-      $response = $client->post(
-        'https://api.kohortpay.com/payment-groups/' . $code . '/validate',
-        [
-          'headers' => [
-            'Authorization' =>
-              'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
-          ],
-          'json' => $additionnalInfo,
-        ]
-      );
+      $response = $client->post('https://api.kohortpay.com/payment-groups/' . $code . '/validate', [
+        'headers' => [
+          'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
+        ],
+        'json' => $additionnalInfo,
+      ]);
+
+      $cashbackAmount = json_decode($response->getBody()->getContents(), true)['cashback_amount'] ?? 5.0;
+      $this->saveReferralDetailsInDB($code, $cashbackAmount);
 
       return true;
     } catch (ClientException $e) {
@@ -106,36 +95,36 @@ class CartController extends CartControllerCore
         }
 
         // If any error occurs, we display a generic error message.
-        $this->errors[] = $this->trans(
-          'The voucher code is invalid.',
-          [],
-          'Shop.Notifications.Error'
-        );
+        $this->errors[] = $this->trans('The voucher code is invalid.', [], 'Shop.Notifications.Error');
         return;
       }
     }
   }
 
   /**
-   * Save Kohort code in database.
+   * Save referral code and cashback amount in database.
    */
-  protected function saveKohortCodeInDatabase($code)
+  protected function saveReferralDetailsInDB($code, $cashbackAmount = 0.0)
   {
     $sql = new DbQuery();
     $sql->select('id_cart');
-    $sql->from('kohortpay_cart');
+    $sql->from('referral_cart');
     $sql->where('id_cart = ' . (int) $this->context->cart->id);
 
     if (Db::getInstance()->getValue($sql)) {
       Db::getInstance()->update(
-        'kohortpay_cart',
-        ['share_id' => pSQL($code)],
+        'referral_cart',
+        [
+          'share_id' => pSQL($code),
+          'cashback_amount' => (float) $cashbackAmount,
+        ],
         'id_cart = ' . (int) $this->context->cart->id
       );
     } else {
-      Db::getInstance()->insert('kohortpay_cart', [
+      Db::getInstance()->insert('referral_cart', [
         'id_cart' => (int) $this->context->cart->id,
         'share_id' => pSQL($code),
+        'cashback_amount' => (float) $cashbackAmount,
       ]);
     }
   }
