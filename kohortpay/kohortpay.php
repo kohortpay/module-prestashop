@@ -503,16 +503,18 @@ class Kohortpay extends PaymentModule
 
     // If share_id is present in the cart, we add it to the cart
     $sql = new DbQuery();
-    $sql->select('share_id', 'cashback_amount');
+    $sql->select('cashback_amount');
     $sql->from('referral_cart');
     $sql->where('id_cart = ' . (int) $this->context->cart->id);
 
-    if (Db::getInstance()->getValue($sql)) {
+    $cashbackAmount = Db::getInstance()->getValue($sql);
+
+    if ($cashbackAmount) {
       $params['presentedCart']['vouchers']['added'][] = [
         'id_cart_rule' => 0,
         'name' => $this->l('Cashback unlocked'),
         'free_shipping' => false,
-        'reduction_formatted' => Tools::displayPrice(Db::getInstance()->getValue($sql, true)['cashback_amount']),
+        'reduction_formatted' => Tools::displayPrice($cashbackAmount),
       ];
     }
 

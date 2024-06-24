@@ -69,7 +69,15 @@ class CartController extends CartControllerCore
         'json' => $additionnalInfo,
       ]);
 
-      $cashbackAmount = json_decode($response->getBody()->getContents(), true)['cashback_amount'] ?? 5.0;
+      $referralGroup = json_decode($response->getBody()->getContents(), true);
+
+      $cashbackType = $referralGroup['discount_type'] ?? 'PERCENTAGE';
+      $cashbackAmount = $referralGroup['current_discount_level']['value'];
+
+      if ($cashbackType === 'PERCENTAGE') {
+        $cashbackAmount = ($this->context->cart->getOrderTotal() * $cashbackAmount) / 100;
+      }
+
       $this->saveReferralDetailsInDB($code, $cashbackAmount);
 
       return true;
@@ -84,11 +92,11 @@ class CartController extends CartControllerCore
         );
 
         // If the error message is present in the response, we display it.
-        $minimumAmount = Tools::displayPrice(Configuration::get('KOHORTREF_MINIMUM_AMOUNT') ?? 30.0);
+        $minimumAmount = Tools::displayPrice(Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'));
         $defaultSuffixErrorMessage = $this->trans(
           'Complete a purchase of at least %s with a credit card to generate a referral code and get cashback on your order by sharing it.',
           [$minimumAmount],
-          'kohortpay'
+          'Modules.Kohortpay.Kohortpay'
         );
         $errorCode = $errorResponse['error']['code'] ?? null;
         if ($errorCode) {
@@ -114,12 +122,13 @@ class CartController extends CartControllerCore
               break;
           }
 
-          $this->errors[] = $this->trans($errorMessage, [], 'kohortpay') + ' ' + $defaultSuffixErrorMessage;
+          $this->errors[] =
+            $this->trans($errorMessage, [], 'Modules.Kohortpay.Kohortpay') . ' ' . $defaultSuffixErrorMessage;
           return;
         }
 
         // If any error occurs, we display a generic error message.
-        $this->errors[] = $this->trans('The referral code is invalid.', [], 'kohortpay');
+        $this->errors[] = $this->module->l('The referral code is invalid.');
         return;
       }
     }
