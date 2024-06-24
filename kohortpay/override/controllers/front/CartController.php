@@ -73,7 +73,7 @@ class CartController extends CartControllerCore
     $client = new Client();
     try {
       $response = $client->post(
-        'https://api.kohortpay.dev/payment-groups/' . $code . '/validate',
+        'https://api.kohortpay.com/payment-groups/' . $code . '/validate',
         [
           'headers' => [
             'Authorization' =>

@@ -601,7 +601,7 @@ class Kohortpay extends PaymentModule
 
     $client = new Client();
     try {
-      $response = $client->post('https://api.kohortpay.dev/checkout-sessions', [
+      $response = $client->post('https://api.kohortpay.com/checkout-sessions', [
         'headers' => [
           'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
         ],
