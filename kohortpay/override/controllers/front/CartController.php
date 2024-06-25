@@ -103,32 +103,51 @@ class CartController extends CartControllerCore
           $errorMessage = '';
           switch ($errorCode) {
             case 'AMOUNT_TOO_LOW':
-              $errorMessage = 'The cart amount is too low to use this referral code.';
+              $errorMessage = $this->trans(
+                'The cart amount is too low to use this referral code.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
               break;
             case 'COMPLETED_EXPIRED_CANCELED':
-              $errorMessage = 'Unfortunately, the referral period of the cohort has ended.';
+              $errorMessage = $this->trans(
+                'Unfortunately, the referral period of the cohort has ended.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
               break;
             case 'MAX_PARTICIPANTS_REACHED':
-              $errorMessage = 'Unfortunately, the maximum number of people in the cohort has been reached.';
+              $errorMessage = $this->trans(
+                'Unfortunately, the maximum number of people in the cohort has been reached.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
               break;
             case 'EMAIL_ALREADY_USED':
-              $errorMessage = 'The email address has already been used to join the cohort.';
+              $errorMessage = $this->trans(
+                'The email address has already been used to join the cohort.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
               break;
             case 'NOT_FOUND':
-              $errorMessage = 'The referral code is unknown or not found.';
+              $errorMessage = $this->trans(
+                'The referral code is unknown or not found.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
               break;
             default:
-              $errorMessage = 'The referral code is invalid.';
+              $errorMessage = $this->trans('The referral code is invalid.', [], 'Modules.Kohortpay.Kohortpay');
               break;
           }
 
-          $this->errors[] =
-            $this->trans($errorMessage, [], 'Modules.Kohortpay.Kohortpay') . ' ' . $defaultSuffixErrorMessage;
+          $this->errors[] = $errorMessage . ' ' . $defaultSuffixErrorMessage;
           return;
         }
 
         // If any error occurs, we display a generic error message.
-        $this->errors[] = $this->module->l('The referral code is invalid.');
+        $this->errors[] = $this->trans('The referral code is invalid.', [], 'Modules.Kohortpay.Kohortpay');
         return;
       }
     }

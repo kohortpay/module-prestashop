@@ -156,7 +156,7 @@ class Kohortpay extends PaymentModule
     return [
       'form' => [
         'legend' => [
-          'title' => $this->l('KohortPay Settings'),
+          'title' => $this->l('Referral program settings (with KohortPay payment method)'),
           'icon' => 'icon-cogs',
         ],
         'input' => [
@@ -184,9 +184,7 @@ class Kohortpay extends PaymentModule
             'name' => 'KOHORTPAY_API_SECRET_KEY',
             'class' => 'fixed-width-xl',
             'label' => $this->l('API Secret Key'),
-            'desc' => $this->l(
-              'Found in KohortPay Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'
-            ),
+            'desc' => $this->l('Found in Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'),
           ],
           [
             'type' => 'text',
@@ -212,7 +210,7 @@ class Kohortpay extends PaymentModule
     return [
       'form' => [
         'legend' => [
-          'title' => $this->l('KohortRef Settings'),
+          'title' => $this->l('Referral program settings (with your own payment methods)'),
           'icon' => 'icon-cogs',
         ],
         'input' => [
@@ -221,7 +219,7 @@ class Kohortpay extends PaymentModule
             'label' => $this->l('Activate'),
             'name' => 'KOHORTREF_LIVE_MODE',
             'is_bool' => true,
-            'desc' => $this->l('Must be enabled to let your customers refer with KohortRef.'),
+            'desc' => $this->l('Must be enabled to let your customers refer.'),
             'values' => [
               [
                 'id' => 'active_on',
@@ -240,16 +238,14 @@ class Kohortpay extends PaymentModule
             'name' => 'KOHORTPAY_API_SECRET_KEY',
             'class' => 'fixed-width-xl',
             'label' => $this->l('API Secret Key'),
-            'desc' => $this->l(
-              'Found in KohortPay Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'
-            ),
+            'desc' => $this->l('Found in Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'),
           ],
           [
             'type' => 'password',
             'name' => 'KOHORTPAY_WEBHOOK_SECRET_KEY',
             'class' => 'fixed-width-xl',
             'label' => $this->l('WEBHOOK Secret Key'),
-            'desc' => $this->l('Found in KohortPay Dashboard > Developer settings. Start with whsec_.'),
+            'desc' => $this->l('Found in Dashboard > Developer settings. Start with whsec_.'),
           ],
           [
             'type' => 'text',
@@ -257,13 +253,13 @@ class Kohortpay extends PaymentModule
             'class' => 'fixed-width-md',
             'prefix' => $this->context->currency->iso_code,
             'label' => $this->l('Minimum amount'),
-            'desc' => $this->l('Minimum total order amount to use KohortRef.'),
+            'desc' => $this->l('Minimum total order amount to refer.'),
           ],
           [
             'type' => 'checkbox',
             'label' => $this->l('Available payment methods'),
             'name' => 'KOHORTREF_PAYMENT_METHODS',
-            'desc' => $this->l('Select the payment methods you want to enable for KohortRef.'),
+            'desc' => $this->l('Select the payment methods you want to enable to refer.'),
             // Static values
             'values' => [
               'query' => $this->getActivePaymentMethodsList(),
@@ -276,7 +272,7 @@ class Kohortpay extends PaymentModule
             'label' => $this->l('Debug mode'),
             'name' => 'KOHORTPAY_DEBUG_MODE',
             'is_bool' => true,
-            'desc' => $this->l('Add additional logs to help you debug KohortRef.'),
+            'desc' => $this->l('Add additional logs to help you debug.'),
             'values' => [
               [
                 'id' => 'active_on',
@@ -331,7 +327,7 @@ class Kohortpay extends PaymentModule
 
     // KOHORTPAY_LIVE_MODE & KOHORTREF_LIVE_MODE could not be enabled at the same time
     if (Tools::getValue('KOHORTPAY_LIVE_MODE') && Tools::getValue('KOHORTREF_LIVE_MODE')) {
-      $this->context->controller->errors[] = $this->l('KohortPay and KohortRef could not be enabled at the same time.');
+      $this->context->controller->errors[] = $this->l('Both mode could not be enabled at the same time.');
       return false;
     }
 
@@ -720,5 +716,13 @@ class Kohortpay extends PaymentModule
   {
     $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'referral_cart WHERE id_cart = ' . (int) $id_cart;
     return Db::getInstance()->getValue($sql);
+  }
+
+  /**
+   * Check if the module is using the new translation system.
+   */
+  public function isUsingNewTranslationSystem()
+  {
+    return true;
   }
 }
