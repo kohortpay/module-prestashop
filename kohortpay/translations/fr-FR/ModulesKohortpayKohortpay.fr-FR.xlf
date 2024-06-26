@@ -13,17 +13,17 @@
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="bb67037d3badc9230f689cdf5eb739f7">
-        <source>Unfortunately, the referral period of the cohort has ended.</source>
-        <target>Dommage, le délai de parrainage pour le kohort de Martin est terminé.</target>
+        <source>Unfortunately, the referral period of the kohort has ended.</source>
+        <target>Dommage, le délai de parrainage pour le kohort est terminé.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="bc88f07309c0a2814632ffb8fd12e9a5">
-        <source>Unfortunately, the maximum number of people in the cohort has been reached.</source>
+        <source>Unfortunately, the maximum number of people in the kohort has been reached.</source>
         <target>Dommage, le nombre de personnes maximum dans le kohort a été atteint.</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="3de464441b730cfb2f5505946b300102">
-        <source>The email address has already been used to join the cohort.</source>
+        <source>The email address has already been used to join the kohort.</source>
         <target>Cette adresse mail a déjà été utilisée pour rejoindre le kohort.</target>
         <note>Line: </note>
       </trans-unit>

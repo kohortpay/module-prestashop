@@ -30,7 +30,8 @@ $sql[] =
   'referral_cart` (
     `id_cart` int(11) NOT NULL,
     `share_id` varchar(255) NOT NULL,
-    `cashback_amount` decimal(20,2) NOT NULL,
+    `cashback_type` varchar(255) NOT NULL,
+    `cashback_value` decimal(20,2) NOT NULL,
     PRIMARY KEY  (`id_cart`)
 ) ENGINE=' .
   _MYSQL_ENGINE_ .

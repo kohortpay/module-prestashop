@@ -497,15 +497,32 @@ class Kohortpay extends PaymentModule
       $params['presentedCart']['vouchers']['allowed'] = 1;
     }
 
-    // If share_id is present in the cart, we add it to the cart
+    if ($params['cart']->getOrderTotal() < Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')) {
+      return $params;
+    }
+
     $sql = new DbQuery();
-    $sql->select('cashback_amount');
+    $sql->select('cashback_value, cashback_type');
     $sql->from('referral_cart');
     $sql->where('id_cart = ' . (int) $this->context->cart->id);
 
-    $cashbackAmount = Db::getInstance()->getValue($sql);
+    $result = Db::getInstance()->getRow($sql);
+    if (!$result) {
+      return $params;
+    }
+    $cashbackType = $result['cashback_type'];
+    $cashbackValue = $result['cashback_value'];
 
-    if ($cashbackAmount) {
+    $cashbackAmount = 0;
+    if ($cashbackType && $cashbackValue) {
+      if ($cashbackType == 'PERCENTAGE') {
+        $cashbackAmount = ($params['cart']->getOrderTotal() * $cashbackValue) / 100;
+      } else {
+        $cashbackAmount = $cashbackValue;
+      }
+    }
+
+    if ($cashbackAmount !== 0) {
       $params['presentedCart']['vouchers']['added'][] = [
         'id_cart_rule' => 0,
         'name' => $this->l('Cashback unlocked'),

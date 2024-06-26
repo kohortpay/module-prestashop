@@ -72,13 +72,9 @@ class CartController extends CartControllerCore
       $referralGroup = json_decode($response->getBody()->getContents(), true);
 
       $cashbackType = $referralGroup['discount_type'] ?? 'PERCENTAGE';
-      $cashbackAmount = $referralGroup['current_discount_level']['value'];
+      $cashbackValue = $referralGroup['current_discount_level']['value'] ?? 0.0;
 
-      if ($cashbackType === 'PERCENTAGE') {
-        $cashbackAmount = ($this->context->cart->getOrderTotal() * $cashbackAmount) / 100;
-      }
-
-      $this->saveReferralDetailsInDB($code, $cashbackAmount);
+      $this->saveReferralDetailsInDB($code, $cashbackType, $cashbackValue);
 
       return true;
     } catch (ClientException $e) {
@@ -111,21 +107,21 @@ class CartController extends CartControllerCore
               break;
             case 'COMPLETED_EXPIRED_CANCELED':
               $errorMessage = $this->trans(
-                'Unfortunately, the referral period of the cohort has ended.',
+                'Unfortunately, the referral period of the kohort has ended.',
                 [],
                 'Modules.Kohortpay.Kohortpay'
               );
               break;
             case 'MAX_PARTICIPANTS_REACHED':
               $errorMessage = $this->trans(
-                'Unfortunately, the maximum number of people in the cohort has been reached.',
+                'Unfortunately, the maximum number of people in the kohort has been reached.',
                 [],
                 'Modules.Kohortpay.Kohortpay'
               );
               break;
             case 'EMAIL_ALREADY_USED':
               $errorMessage = $this->trans(
-                'The email address has already been used to join the cohort.',
+                'The email address has already been used to join the kohort.',
                 [],
                 'Modules.Kohortpay.Kohortpay'
               );
@@ -156,8 +152,12 @@ class CartController extends CartControllerCore
   /**
    * Save referral code and cashback amount in database.
    */
-  protected function saveReferralDetailsInDB($code, $cashbackAmount = 0.0)
+  protected function saveReferralDetailsInDB($code, $cashbackType = 'PERCENTAGE', $cashbackValue = 0.0)
   {
+    if (!$this->context->cart->id || !$code || !$cashbackType || $cashbackValue === 0.0) {
+      return;
+    }
+
     $sql = new DbQuery();
     $sql->select('id_cart');
     $sql->from('referral_cart');
@@ -168,7 +168,8 @@ class CartController extends CartControllerCore
         'referral_cart',
         [
           'share_id' => pSQL($code),
-          'cashback_amount' => (float) $cashbackAmount,
+          'cashback_type' => pSQL($cashbackType),
+          'cashback_value' => (float) $cashbackValue,
         ],
         'id_cart = ' . (int) $this->context->cart->id
       );
@@ -176,7 +177,8 @@ class CartController extends CartControllerCore
       Db::getInstance()->insert('referral_cart', [
         'id_cart' => (int) $this->context->cart->id,
         'share_id' => pSQL($code),
-        'cashback_amount' => (float) $cashbackAmount,
+        'cashback_type' => pSQL($cashbackType),
+        'cashback_value' => (float) $cashbackValue,
       ]);
     }
   }
