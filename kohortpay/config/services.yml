@@ -1,6 +1,0 @@
-services:
-  # The name of the service must match the full namespace class
-  KohortPay\Controller\KohortpayWebhookModuleFrontController:
-    class: KohortPay\Controller\KohortpayWebhookModuleFrontController
-    arguments:
-      - '@prestashop.core.command_bus'

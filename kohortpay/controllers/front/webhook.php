@@ -1,6 +1,4 @@
 <?php
-namespace KohortPay\Controller;
-
 /**
  * 2022-2024 KohortPay
  *
@@ -27,31 +25,14 @@ if (!defined('_PS_VERSION_')) {
   exit();
 }
 
-use PrestaShop\PrestaShop\Core\CommandBus\CommandBusInterface;
-use PrestaShop\PrestaShop\Core\Domain\Order\Command\IssueStandardRefundCommand;
-use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
-
-class KohortpayWebhookModuleFrontController extends FrameworkBundleAdminController
+class KohortpayWebhookModuleFrontController extends ModuleFrontController
 {
-  /**
-   * @var CommandBusInterface
-   */
-  private $commandBus;
-
-  /**
-   * @param CommandBusInterface $commandBus
-   */
-  public function __construct(CommandBusInterface $commandBus)
-  {
-    $this->commandBus = $commandBus;
-  }
-
   /**
    * Webhook controller to receive event notifications from KohortPay
    *
    * @see FrontController::postProcess()
    */
-  public function run()
+  public function postProcess()
   {
     $request = json_decode(file_get_contents('php://input'), true);
     $this->LogWebhookMessage('Webhook received : ' . json_encode($request), 1);
@@ -104,8 +85,9 @@ class KohortpayWebhookModuleFrontController extends FrameworkBundleAdminControll
           $order_id = $request['data']['clientReferenceId'];
           $order = new Order((int) $order_id);
           if ($order) {
-            $refunds = [];
-            // Divde amountCashback by number of products in order and create refund for each product
+            $order->setCurrentState(Configuration::get('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS'));
+
+            /*$refunds = [];
             $orderDetails = $order->getOrderDetailList();
             $amount = $request['data']['amountCashback'] / 100;
             $amountPerProduct = $amount / count($orderDetails);
@@ -117,7 +99,7 @@ class KohortpayWebhookModuleFrontController extends FrameworkBundleAdminControll
             }
 
             $command = new IssueStandardRefundCommand($order_id, $refunds, false, false, true, false, 0);
-            $this->commandBus->handle($command);
+            $this->commandBus->handle($command);*/
           }
         }
 

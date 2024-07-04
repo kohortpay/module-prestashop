@@ -12,17 +12,17 @@
         <target>Le montant du panier est trop bas pour pouvoir appliquer le code de parrainage.</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="bb67037d3badc9230f689cdf5eb739f7">
+      <trans-unit id="aed9c69e2d0395cdfe0713bbb00aa2ac">
         <source>Unfortunately, the referral period of the kohort has ended.</source>
         <target>Dommage, le délai de parrainage pour le kohort est terminé.</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="bc88f07309c0a2814632ffb8fd12e9a5">
+      <trans-unit id="74fde6d31b810128c8595eac5fa22bfa">
         <source>Unfortunately, the maximum number of people in the kohort has been reached.</source>
         <target>Dommage, le nombre de personnes maximum dans le kohort a été atteint.</target>
         <note>Line: </note>
       </trans-unit>
-      <trans-unit id="3de464441b730cfb2f5505946b300102">
+      <trans-unit id="02d389bba93904bf87a2fee5f4e85db5">
         <source>The email address has already been used to join the kohort.</source>
         <target>Cette adresse mail a déjà été utilisée pour rejoindre le kohort.</target>
         <note>Line: </note>
@@ -35,21 +35,6 @@
       <trans-unit id="a308f8881f0b038aa841882fdec3c439">
         <source>The referral code is invalid.</source>
         <target>Le code de parrainage est invalide.</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="3603d559dc55ea7d87df1e8954044133">
-        <source>An error occurred while trying to redirect the customer. Please contact the merchant to have more informations</source>
-        <target>Une erreur s'est produite lors de la tentative de redirection du client. Veuillez contacter le commerçant pour avoir plus d'informations</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="42d04f724205be12e1b61fbda767adfb">
-        <source>Payment was authorized by KohortPay</source>
-        <target>Le paiement a été autorisé par KohortPay</target>
-        <note>Line: </note>
-      </trans-unit>
-      <trans-unit id="8f9aebe060f8f7cc16c9937733afada8">
-        <source>An error occured to validate your order. Please contact the merchant to have more informations</source>
-        <target>Une erreur est survenue lors de la validation de votre commande. Veuillez contacter le commerçant pour avoir plus d'informations</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="2a2e3c4abf4b1fd018afabf554b5b59a">
@@ -70,6 +55,16 @@
       <trans-unit id="92d4773a9f32fc3333cb8238471cf763">
         <source>You have to enable the cURL extension on your server to install this module</source>
         <target>Vous devez activer l'extension cURL sur votre serveur pour installer ce module</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="f935c9d2232ddfc088878bd4203fc0ef">
+        <source>Cashback to process</source>
+        <target>Cashback à traiter</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="46f7b696fd9b124f75a3ac968b8a320f">
+        <source>Cashback processed</source>
+        <target>Cashback traité</target>
         <note>Line: </note>
       </trans-unit>
       <trans-unit id="30952c91eec02c95db266c2d5ed59f0e">
@@ -205,6 +200,21 @@
       <trans-unit id="4231a925deb9adc13a1106bf3042ecd4">
         <source>Cashback unlocked</source>
         <target>Cashback débloqué</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="42d04f724205be12e1b61fbda767adfb">
+        <source>Payment was authorized by KohortPay</source>
+        <target>Le paiement a été autorisé par KohortPay</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="8f9aebe060f8f7cc16c9937733afada8">
+        <source>An error occured to validate your order. Please contact the merchant to have more informations</source>
+        <target>Une erreur est survenue lors de la validation de votre commande. Veuillez contacter le commerçant pour avoir plus d'informations</target>
+        <note>Line: </note>
+      </trans-unit>
+      <trans-unit id="3603d559dc55ea7d87df1e8954044133">
+        <source>An error occurred while trying to redirect the customer. Please contact the merchant to have more informations</source>
+        <target>Une erreur s'est produite lors de la tentative de redirection du client. Veuillez contacter le commerçant pour avoir plus d'informations</target>
         <note>Line: </note>
       </trans-unit>
     </body>
