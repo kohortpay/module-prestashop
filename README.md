@@ -125,7 +125,7 @@ You can display or hide the KohortPay payment method from you checkout page usin
 
 ### API Secret Key
 
-Found in KohortPay Dashboard > Developer settings > API Keys.
+Found in Dashboard > Developer settings > API Keys.
 Start with sk_ or sk_test (for test mode).
 
 ### Minimum amount
@@ -140,17 +140,17 @@ You can define here the total order minimum amount to display the KohortPay paym
 
 ### Activation
 
-Must be enabled to let your customers refer with KohortRef.
+Must be enabled to let your customers refer.
 *Nota Bene* : KohortPay and KohortRef could not be enabled at the same time.
 
 ### API Secret Key
 
-Found in KohortPay Dashboard > Developer settings > API Keys.
+Found in Dashboard > Developer settings > API Keys.
 Start with sk_ or sk_test (for test mode).
 
 ### WEBHOOK Secret Key
 
-Found in KohortPay Dashboard > Developer settings > Webhooks > Secret Key.
+Found in Dashboard > Developer settings > Webhooks > Secret Key.
 Start with whsec_.
 
 ### Payment Methods

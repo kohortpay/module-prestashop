@@ -39,21 +39,11 @@ class CartController extends CartControllerCore
 
     if (Tools::getIsset('addDiscount')) {
       if (!($code = trim(Tools::getValue('discount_name')))) {
-        $this->errors[] = $this->trans(
-          'You must enter a voucher code.',
-          [],
-          'Shop.Notifications.Error'
-        );
+        $this->errors[] = $this->trans('You must enter a voucher code.', [], 'Shop.Notifications.Error');
       } elseif (!Validate::isCleanHtml($code)) {
-        $this->errors[] = $this->trans(
-          'The voucher code is invalid.',
-          [],
-          'Shop.Notifications.Error'
-        );
+        $this->errors[] = $this->trans('The voucher code is invalid.', [], 'Shop.Notifications.Error');
       } elseif (substr($code, 0, 3) === 'KHT') {
-        if ($this->validateKohortCode($code)) {
-          $this->saveKohortCodeInDatabase($code);
-        }
+        $this->validateReferralCode($code);
         return;
       }
     }
@@ -64,7 +54,7 @@ class CartController extends CartControllerCore
   /**
    * Make API POST call to send order to KohortRef.
    */
-  protected function validateKohortCode($code)
+  protected function validateReferralCode($code)
   {
     $additionnalInfo = [
       'amount' => round($this->context->cart->getOrderTotal() * 100),
@@ -72,16 +62,19 @@ class CartController extends CartControllerCore
 
     $client = new Client();
     try {
-      $response = $client->post(
-        'https://api.kohortpay.dev/payment-groups/' . $code . '/validate',
-        [
-          'headers' => [
-            'Authorization' =>
-              'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
-          ],
-          'json' => $additionnalInfo,
-        ]
-      );
+      $response = $client->post('https://api.kohortpay.com/payment-groups/' . $code . '/validate', [
+        'headers' => [
+          'Authorization' => 'Bearer ' . Configuration::get('KOHORTPAY_API_SECRET_KEY'),
+        ],
+        'json' => $additionnalInfo,
+      ]);
+
+      $referralGroup = json_decode($response->getBody()->getContents(), true);
+
+      $cashbackType = $referralGroup['discount_type'] ?? 'PERCENTAGE';
+      $cashbackValue = $referralGroup['current_discount_level']['value'] ?? 0.0;
+
+      $this->saveReferralDetailsInDB($code, $cashbackType, $cashbackValue);
 
       return true;
     } catch (ClientException $e) {
@@ -95,47 +88,97 @@ class CartController extends CartControllerCore
         );
 
         // If the error message is present in the response, we display it.
-        $errorMessage = $errorResponse['error']['message'] ?? null;
-        if ($errorMessage) {
-          if (is_array($errorMessage)) {
-            $errorMessage = implode(', ', (array) $errorMessage);
+        $minimumAmount = Tools::displayPrice(Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'));
+        $defaultSuffixErrorMessage = $this->trans(
+          'Complete a purchase of at least %s with a credit card to generate a referral code and get cashback on your order by sharing it.',
+          [$minimumAmount],
+          'Modules.Kohortpay.Kohortpay'
+        );
+        $errorCode = $errorResponse['error']['code'] ?? null;
+        if ($errorCode) {
+          $errorMessage = '';
+          switch ($errorCode) {
+            case 'AMOUNT_TOO_LOW':
+              $errorMessage = $this->trans(
+                'The cart amount is too low to use this referral code.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
+              break;
+            case 'COMPLETED_EXPIRED_CANCELED':
+              $errorMessage = $this->trans(
+                'Unfortunately, the referral period of the kohort has ended.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
+              break;
+            case 'MAX_PARTICIPANTS_REACHED':
+              $errorMessage = $this->trans(
+                'Unfortunately, the maximum number of people in the kohort has been reached.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
+              break;
+            case 'EMAIL_ALREADY_USED':
+              $errorMessage = $this->trans(
+                'The email address has already been used to join the kohort.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
+              break;
+            case 'NOT_FOUND':
+              $errorMessage = $this->trans(
+                'The referral code is unknown or not found.',
+                [],
+                'Modules.Kohortpay.Kohortpay'
+              );
+              break;
+            default:
+              $errorMessage = $this->trans('The referral code is invalid.', [], 'Modules.Kohortpay.Kohortpay');
+              break;
           }
 
-          $this->errors[] = $this->trans($errorMessage, [], 'kohortpay');
+          $this->errors[] = $errorMessage . ' ' . $defaultSuffixErrorMessage;
           return;
         }
 
         // If any error occurs, we display a generic error message.
-        $this->errors[] = $this->trans(
-          'The voucher code is invalid.',
-          [],
-          'Shop.Notifications.Error'
-        );
+        $this->errors[] = $this->trans('The referral code is invalid.', [], 'Modules.Kohortpay.Kohortpay');
         return;
       }
     }
   }
 
   /**
-   * Save Kohort code in database.
+   * Save referral code and cashback amount in database.
    */
-  protected function saveKohortCodeInDatabase($code)
+  protected function saveReferralDetailsInDB($code, $cashbackType = 'PERCENTAGE', $cashbackValue = 0.0)
   {
+    if (!$this->context->cart->id || !$code || !$cashbackType || $cashbackValue === 0.0) {
+      return;
+    }
+
     $sql = new DbQuery();
     $sql->select('id_cart');
-    $sql->from('kohortpay_cart');
+    $sql->from('referral_cart');
     $sql->where('id_cart = ' . (int) $this->context->cart->id);
 
     if (Db::getInstance()->getValue($sql)) {
       Db::getInstance()->update(
-        'kohortpay_cart',
-        ['share_id' => pSQL($code)],
+        'referral_cart',
+        [
+          'share_id' => pSQL($code),
+          'cashback_type' => pSQL($cashbackType),
+          'cashback_value' => (float) $cashbackValue,
+        ],
         'id_cart = ' . (int) $this->context->cart->id
       );
     } else {
-      Db::getInstance()->insert('kohortpay_cart', [
+      Db::getInstance()->insert('referral_cart', [
         'id_cart' => (int) $this->context->cart->id,
         'share_id' => pSQL($code),
+        'cashback_type' => pSQL($cashbackType),
+        'cashback_value' => (float) $cashbackValue,
       ]);
     }
   }
