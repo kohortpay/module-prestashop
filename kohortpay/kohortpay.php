@@ -550,7 +550,7 @@ class Kohortpay extends PaymentModule
     $json['customerFirstName'] = $customer->firstname;
     $json['customerLastName'] = $customer->lastname;
     $json['customerEmail'] = $customer->email;
-    // $json['customerPhoneNumber'] = $customer->phone;
+    $json['customerPhoneNumber'] = $customer->phone;
 
     // Get order total with taxes
     $json['amountTotal'] = $this->cleanPrice($order->total_paid);
