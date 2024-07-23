@@ -781,4 +781,40 @@ class Kohortpay extends PaymentModule
     $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'referral_cart WHERE id_cart = ' . (int) $id_cart;
     return Db::getInstance()->getValue($sql);
   }
+
+  /**
+   * Manage error messages
+   */
+  public function getErrorMessageByCode($errorCode)
+  {
+    $errorMessage = '';
+    switch ($errorCode) {
+      case 'AMOUNT_TOO_LOW':
+        $errorMessage = $this->l('The cart amount is too low to use this referral code.');
+        break;
+      case 'COMPLETED_EXPIRED_CANCELED':
+        $errorMessage = $this->l('Unfortunately, the referral period of the kohort has ended.');
+        break;
+      case 'MAX_PARTICIPANTS_REACHED':
+        $errorMessage = $this->l('Unfortunately, the maximum number of people in the kohort has been reached.');
+        break;
+      case 'EMAIL_ALREADY_USED':
+        $errorMessage = $this->l('The email address has already been used to join the kohort.');
+        break;
+      case 'NOT_FOUND':
+        $errorMessage = $this->l('The referral code is unknown or not found.');
+        break;
+      default:
+        $errorMessage = $this->l('The referral code is invalid.');
+        break;
+    }
+
+    $minimumAmount = Tools::displayPrice(Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'));
+    $defaultSuffixErrorMessage =
+      $this->l('Complete a purchase of at least ') .
+      $minimumAmount .
+      $this->l(' with a credit card to generate a referral code and get cashback on your order by sharing it.');
+
+    return $errorMessage . ' ' . $defaultSuffixErrorMessage;
+  }
 }
