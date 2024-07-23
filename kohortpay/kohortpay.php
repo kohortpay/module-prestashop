@@ -781,12 +781,4 @@ class Kohortpay extends PaymentModule
     $sql = 'SELECT share_id FROM ' . _DB_PREFIX_ . 'referral_cart WHERE id_cart = ' . (int) $id_cart;
     return Db::getInstance()->getValue($sql);
   }
-
-  /**
-   * Check if the module is using the new translation system.
-   */
-  public function isUsingNewTranslationSystem()
-  {
-    return true;
-  }
 }
