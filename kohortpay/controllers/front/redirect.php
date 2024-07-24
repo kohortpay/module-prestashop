@@ -81,7 +81,8 @@ class KohortpayRedirectModuleFrontController extends ModuleFrontController
     $json['customerFirstName'] = Context::getContext()->customer->firstname;
     $json['customerLastName'] = Context::getContext()->customer->lastname;
     $json['customerEmail'] = Context::getContext()->customer->email;
-    // $json['customerPhoneNumber'] = Context::getContext()->customer->phone;
+    $customerAddress = new Address(Context::getContext()->cart->id_address_delivery);
+    $json['customerPhoneNumber'] = $customerAddress->phone;
 
     // Return URLs
     $json['successUrl'] = $this->context->link->getModuleLink('kohortpay', 'confirmation', [

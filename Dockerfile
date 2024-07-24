@@ -1,8 +1,8 @@
 #
 # Pick the Prestashop versions you want to test
 #
-#FROM docker.io/bitnami/prestashop:1.7
-FROM --platform=linux/amd64 docker.io/bitnami/prestashop:8
+FROM docker.io/bitnami/prestashop:1.7.6-8
+#FROM --platform=linux/amd64 docker.io/bitnami/prestashop:8
 
 # Add KohortPay module
 USER root

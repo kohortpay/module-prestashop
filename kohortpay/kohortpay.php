@@ -550,7 +550,8 @@ class Kohortpay extends PaymentModule
     $json['customerFirstName'] = $customer->firstname;
     $json['customerLastName'] = $customer->lastname;
     $json['customerEmail'] = $customer->email;
-    // $json['customerPhoneNumber'] = $customer->phone;
+    $customerAddress = new Address($order->id_address_delivery);
+    $json['customerPhoneNumber'] = $customerAddress->phone;
 
     // Get order total with taxes
     $json['amountTotal'] = $this->cleanPrice($order->total_paid);
@@ -782,10 +783,38 @@ class Kohortpay extends PaymentModule
   }
 
   /**
-   * Check if the module is using the new translation system.
+   * Manage error messages
    */
-  public function isUsingNewTranslationSystem()
+  public function getErrorMessageByCode($errorCode)
   {
-    return true;
+    $errorMessage = '';
+    switch ($errorCode) {
+      case 'AMOUNT_TOO_LOW':
+        $errorMessage = $this->l('The cart amount is too low to use this referral code.');
+        break;
+      case 'COMPLETED_EXPIRED_CANCELED':
+        $errorMessage = $this->l('Unfortunately, the referral period of the kohort has ended.');
+        break;
+      case 'MAX_PARTICIPANTS_REACHED':
+        $errorMessage = $this->l('Unfortunately, the maximum number of people in the kohort has been reached.');
+        break;
+      case 'EMAIL_ALREADY_USED':
+        $errorMessage = $this->l('The email address has already been used to join the kohort.');
+        break;
+      case 'NOT_FOUND':
+        $errorMessage = $this->l('The referral code is unknown or not found.');
+        break;
+      default:
+        $errorMessage = $this->l('The referral code is invalid.');
+        break;
+    }
+
+    $minimumAmount = Tools::displayPrice(Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'));
+    $defaultSuffixErrorMessage =
+      $this->l('Complete a purchase of at least ') .
+      $minimumAmount .
+      $this->l(' with a credit card to generate a referral code and get cashback on your order by sharing it.');
+
+    return $errorMessage . ' ' . $defaultSuffixErrorMessage;
   }
 }
