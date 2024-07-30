@@ -33,7 +33,6 @@ It includes two isolated features :
     - [Prerequisites](#prerequisites-1)
     - [Activation](#activation-1)
     - [API Secret Key](#api-secret-key-1)
-    - [WEBHOOK Secret Key](#webhook-secret-key)
     - [Payment Methods](#payment-methods)
     - [Minimum amount](#minimum-amount-1)
   - [Demo](#demo)
@@ -147,11 +146,6 @@ Must be enabled to let your customers refer.
 
 Found in Dashboard > Developer settings > API Keys.
 Start with sk_ or sk_test (for test mode).
-
-### WEBHOOK Secret Key
-
-Found in Dashboard > Developer settings > Webhooks > Secret Key.
-Start with whsec_.
 
 ### Payment Methods
 

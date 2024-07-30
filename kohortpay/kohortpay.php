@@ -73,7 +73,6 @@ class Kohortpay extends PaymentModule
     Configuration::updateValue('KOHORTPAY_LIVE_MODE', false);
     Configuration::updateValue('KOHORTREF_LIVE_MODE', false);
     Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', '');
-    Configuration::updateValue('KOHORTPAY_WEBHOOK_SECRET_KEY', '');
     Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize([]));
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
     Configuration::updateValue('KOHORTPAY_DEBUG_MODE', false);
@@ -95,7 +94,6 @@ class Kohortpay extends PaymentModule
     Configuration::deleteByName('KOHORTPAY_LIVE_MODE');
     Configuration::deleteByName('KOHORTREF_LIVE_MODE');
     Configuration::deleteByName('KOHORTPAY_API_SECRET_KEY');
-    Configuration::deleteByName('KOHORTPAY_WEBHOOK_SECRET_KEY');
     Configuration::deleteByName('KOHORTREF_PAYMENT_METHODS');
     Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
     Configuration::deleteByName('KOHORTPAY_DEBUG_MODE');
@@ -248,13 +246,6 @@ class Kohortpay extends PaymentModule
             'desc' => $this->l('Found in Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'),
           ],
           [
-            'type' => 'password',
-            'name' => 'KOHORTPAY_WEBHOOK_SECRET_KEY',
-            'class' => 'fixed-width-xl',
-            'label' => $this->l('WEBHOOK Secret Key'),
-            'desc' => $this->l('Found in Dashboard > Developer settings. Start with whsec_.'),
-          ],
-          [
             'type' => 'text',
             'name' => 'KOHORTPAY_MINIMUM_AMOUNT',
             'class' => 'fixed-width-md',
@@ -311,7 +302,6 @@ class Kohortpay extends PaymentModule
       'KOHORTREF_LIVE_MODE' => Configuration::get('KOHORTREF_LIVE_MODE', false),
       'KOHORTPAY_DEBUG_MODE' => Configuration::get('KOHORTPAY_DEBUG_MODE', false),
       'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
-      'KOHORTPAY_WEBHOOK_SECRET_KEY' => Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY', null),
       'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 30),
     ];
 
@@ -354,25 +344,10 @@ class Kohortpay extends PaymentModule
       return false;
     }
 
-    // KOHORTPAY_WEBHOOK_SECRET_KEY is required if KohortRef live mode is enabled
-    if (
-      Tools::getValue('KOHORTREF_LIVE_MODE') &&
-      !Tools::getValue('KOHORTPAY_WEBHOOK_SECRET_KEY') &&
-      !Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY')
-    ) {
-      $this->context->controller->errors[] = $this->l('WEBHOOK Secret Key is required.');
-      return false;
-    }
-
     $kohortRefPaymentMethods = [];
     foreach (array_keys($form_values) as $key) {
       // If KOHORTPAY_API_SECRET_KEY value is empty but configuration value is not, use the configuration value
       if ($key == 'KOHORTPAY_API_SECRET_KEY' && !Tools::getValue($key) && Configuration::get($key)) {
-        Configuration::updateValue($key, Configuration::get($key));
-        continue;
-      }
-      // If KOHORTPAY_WEBHOOK_SECRET_KEY value is empty but configuration value is not, use the configuration value
-      if ($key == 'KOHORTPAY_WEBHOOK_SECRET_KEY' && !Tools::getValue($key) && Configuration::get($key)) {
         Configuration::updateValue($key, Configuration::get($key));
         continue;
       }
@@ -445,11 +420,6 @@ class Kohortpay extends PaymentModule
 
     if (!Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
       $this->LogOrderMessage('API Secret Key is not set.', $order->id, 2);
-      return;
-    }
-
-    if (!Configuration::get('KOHORTPAY_WEBHOOK_SECRET_KEY')) {
-      $this->LogOrderMessage('WEBHOOK Secret Key is not set.', $order->id, 2);
       return;
     }
 
