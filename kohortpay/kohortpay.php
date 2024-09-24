@@ -75,30 +75,21 @@ class Kohortpay extends PaymentModule
     Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', '');
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
     Configuration::updateValue('KOHORTPAY_DEBUG_MODE', false);
-    Configuration::updateValue('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS', 0);
-    Configuration::updateValue('KOHORTPAY_CASHBACK_PROCESSED_STATUS', 0);
 
     include dirname(__FILE__) . '/sql/install.php';
 
     $hooks = ['paymentOptions', 'actionPaymentConfirmation', 'actionPresentCart'];
 
-    return parent::install() &&
-      $this->registerHook($hooks) &&
-      $this->addOrderState($this->l('Cashback to process'), '#34209E') &&
-      $this->addOrderState($this->l('Cashback processed'), '#01B887');
+    return parent::install() && $this->registerHook($hooks);
   }
 
   public function uninstall()
   {
-    Configuration::deleteByName('KOHORTPAY_LIVE_MODE');
-    Configuration::deleteByName('KOHORTREF_LIVE_MODE');
-    Configuration::deleteByName('KOHORTPAY_API_SECRET_KEY');
-    Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
-    Configuration::deleteByName('KOHORTPAY_DEBUG_MODE');
-    Configuration::deleteByName('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS');
-    Configuration::deleteByName('KOHORTPAY_CASHBACK_PROCESSED_STATUS');
-
-    include dirname(__FILE__) . '/sql/uninstall.php';
+    /**
+     * In some cases you should not drop the tables.
+     * Maybe the merchant will just try to reset the module
+     * but does not want to loose all of the data associated to the module.
+     */
 
     return parent::uninstall();
   }
@@ -578,45 +569,6 @@ class Kohortpay extends PaymentModule
       }
       $this->LogOrderMessage('An error occurred while trying to call KohortPay API to send order.', $orderId);
     }
-  }
-
-  /**
-   * Add a new order state
-   */
-  protected function addOrderState($stateName, $color = '#01B887')
-  {
-    // check if order state exist
-    $states = OrderState::getOrderStates((int) $this->context->language->id);
-    foreach ($states as $state) {
-      if (in_array($stateName, $state)) {
-        return true;
-      }
-    }
-
-    // create new order state
-    $orderState = new OrderState();
-    $orderState->name = [];
-    foreach (Language::getLanguages() as $language) {
-      $orderState->name[$language['id_lang']] = $stateName;
-    }
-    $orderState->send_email = false;
-    $orderState->color = $color;
-    $orderState->hidden = false;
-    $orderState->delivery = false;
-    $orderState->logable = false;
-    $orderState->invoice = false;
-
-    if ($orderState->add()) {
-      if ($stateName == $this->l('Cashback to process')) {
-        Configuration::updateValue('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS', (int) $orderState->id);
-      }
-      if ($stateName == $this->l('Cashback processed')) {
-        Configuration::updateValue('KOHORTPAY_CASHBACK_PROCESSED_STATUS', (int) $orderState->id);
-      }
-      return true;
-    }
-
-    return false;
   }
 
   /**
