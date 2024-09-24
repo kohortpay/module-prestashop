@@ -22,7 +22,6 @@
  * @license   https://opensource.org/licenses/MIT The MIT License
  */
 
-use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
@@ -38,7 +37,7 @@ class Kohortpay extends PaymentModule
   {
     $this->name = 'kohortpay';
     $this->tab = 'payments_gateways';
-    $this->version = '1.0.4';
+    $this->version = '1.2.0';
     $this->author = 'KohortPay';
     $this->need_instance = 0;
     $this->bootstrap = true;
@@ -47,7 +46,7 @@ class Kohortpay extends PaymentModule
 
     $this->displayName = $this->l('KohortPay');
     $this->description = $this->l(
-      'Social payment method : Pay less, together. Turn your customer into your brand advocates.'
+      'New generation of referral program : Pay less, together. Turn your customer into your brand advocates.'
     );
 
     $this->confirmUninstall = $this->l('Are you sure you want to uninstall KohortPay ?');
@@ -70,37 +69,25 @@ class Kohortpay extends PaymentModule
       return false;
     }
 
-    Configuration::updateValue('KOHORTPAY_LIVE_MODE', false);
     Configuration::updateValue('KOHORTREF_LIVE_MODE', false);
     Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', '');
-    Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize([]));
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
     Configuration::updateValue('KOHORTPAY_DEBUG_MODE', false);
-    Configuration::updateValue('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS', 0);
-    Configuration::updateValue('KOHORTPAY_CASHBACK_PROCESSED_STATUS', 0);
 
     include dirname(__FILE__) . '/sql/install.php';
 
-    $hooks = ['paymentOptions', 'actionPaymentConfirmation', 'actionPresentCart'];
+    $hooks = ['actionPaymentConfirmation', 'actionPresentCart'];
 
-    return parent::install() &&
-      $this->registerHook($hooks) &&
-      $this->addOrderState($this->l('Cashback to process'), '#34209E') &&
-      $this->addOrderState($this->l('Cashback processed'), '#01B887');
+    return parent::install() && $this->registerHook($hooks);
   }
 
   public function uninstall()
   {
-    Configuration::deleteByName('KOHORTPAY_LIVE_MODE');
-    Configuration::deleteByName('KOHORTREF_LIVE_MODE');
-    Configuration::deleteByName('KOHORTPAY_API_SECRET_KEY');
-    Configuration::deleteByName('KOHORTREF_PAYMENT_METHODS');
-    Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
-    Configuration::deleteByName('KOHORTPAY_DEBUG_MODE');
-    Configuration::deleteByName('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS');
-    Configuration::deleteByName('KOHORTPAY_CASHBACK_PROCESSED_STATUS');
-
-    include dirname(__FILE__) . '/sql/uninstall.php';
+    /**
+     * In some cases you should not drop the tables.
+     * Maybe the merchant will just try to reset the module
+     * but does not want to loose all of the data associated to the module.
+     */
 
     return parent::uninstall();
   }
@@ -150,67 +137,13 @@ class Kohortpay extends PaymentModule
       'id_language' => $this->context->language->id,
     ];
 
-    return $helper->generateForm([$this->getConfigForm(), $this->getConfigFormRef()]);
+    return $helper->generateForm([$this->getConfigForm()]);
   }
 
   /**
    * Create the structure of your form.
    */
   protected function getConfigForm()
-  {
-    return [
-      'form' => [
-        'legend' => [
-          'title' => $this->l('Referral program settings (with KohortPay payment method)'),
-          'icon' => 'icon-cogs',
-        ],
-        'input' => [
-          [
-            'type' => 'switch',
-            'label' => $this->l('Activate'),
-            'name' => 'KOHORTPAY_LIVE_MODE',
-            'is_bool' => true,
-            'desc' => $this->l('Must be enabled to display KohortPay in your checkout page.'),
-            'values' => [
-              [
-                'id' => 'active_on',
-                'value' => true,
-                'label' => $this->l('Enabled'),
-              ],
-              [
-                'id' => 'active_off',
-                'value' => false,
-                'label' => $this->l('Disabled'),
-              ],
-            ],
-          ],
-          [
-            'type' => 'password',
-            'name' => 'KOHORTPAY_API_SECRET_KEY',
-            'class' => 'fixed-width-xl',
-            'label' => $this->l('API Secret Key'),
-            'desc' => $this->l('Found in Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'),
-          ],
-          [
-            'type' => 'text',
-            'name' => 'KOHORTPAY_MINIMUM_AMOUNT',
-            'class' => 'fixed-width-md',
-            'prefix' => $this->context->currency->iso_code,
-            'label' => $this->l('Minimum amount'),
-            'desc' => $this->l('Minimum total order amount to display KohortPay in your checkout page.'),
-          ],
-        ],
-        'submit' => [
-          'title' => $this->l('Save'),
-        ],
-      ],
-    ];
-  }
-
-  /**
-   * Create the structure of your form.
-   */
-  protected function getConfigFormRef()
   {
     return [
       'form' => [
@@ -254,18 +187,6 @@ class Kohortpay extends PaymentModule
             'desc' => $this->l('Minimum total order amount to refer.'),
           ],
           [
-            'type' => 'checkbox',
-            'label' => $this->l('Available payment methods'),
-            'name' => 'KOHORTREF_PAYMENT_METHODS',
-            'desc' => $this->l('Select the payment methods you want to enable to refer.'),
-            // Static values
-            'values' => [
-              'query' => $this->getActivePaymentMethodsList(),
-              'id' => 'id',
-              'name' => 'name',
-            ],
-          ],
-          [
             'type' => 'switch',
             'label' => $this->l('Debug mode'),
             'name' => 'KOHORTPAY_DEBUG_MODE',
@@ -298,19 +219,11 @@ class Kohortpay extends PaymentModule
   protected function getConfigFormValues()
   {
     $configFormValues = [
-      'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', false),
       'KOHORTREF_LIVE_MODE' => Configuration::get('KOHORTREF_LIVE_MODE', false),
       'KOHORTPAY_DEBUG_MODE' => Configuration::get('KOHORTPAY_DEBUG_MODE', false),
       'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
       'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 30),
     ];
-
-    foreach ($this->getActivePaymentMethodsList() as $paymentMethod) {
-      $configFormValues['KOHORTREF_PAYMENT_METHODS_' . $paymentMethod['id']] = in_array(
-        $paymentMethod['id'],
-        $this->getKohortRefPaymentMethods()
-      );
-    }
 
     return $configFormValues;
   }
@@ -322,12 +235,6 @@ class Kohortpay extends PaymentModule
   {
     $form_values = $this->getConfigFormValues();
 
-    // KOHORTPAY_LIVE_MODE & KOHORTREF_LIVE_MODE could not be enabled at the same time
-    if (Tools::getValue('KOHORTPAY_LIVE_MODE') && Tools::getValue('KOHORTREF_LIVE_MODE')) {
-      $this->context->controller->errors[] = $this->l('Both mode could not be enabled at the same time.');
-      return false;
-    }
-
     // Validate KOHORTPAY_MINIMUM_AMOUNT field is a valid price
     if (!Validate::isPrice(Tools::getValue('KOHORTPAY_MINIMUM_AMOUNT'))) {
       $this->context->controller->errors[] = $this->l('Invalid value for minimum amount.');
@@ -336,7 +243,7 @@ class Kohortpay extends PaymentModule
 
     // KOHORTPAY_API_SECRET_KEY is required if KohortPay or KohortRef live mode is enabled
     if (
-      (Tools::getValue('KOHORTPAY_LIVE_MODE') || Tools::getValue('KOHORTREF_LIVE_MODE')) &&
+      Tools::getValue('KOHORTREF_LIVE_MODE') &&
       !Tools::getValue('KOHORTPAY_API_SECRET_KEY') &&
       !Configuration::get('KOHORTPAY_API_SECRET_KEY')
     ) {
@@ -352,56 +259,10 @@ class Kohortpay extends PaymentModule
         continue;
       }
 
-      // If $key includes KOHORTREF_PAYMENT_METHODS_ then add to $kohortRefPaymentMethods
-      if (strpos($key, 'KOHORTREF_PAYMENT_METHODS_') !== false && Tools::getValue($key)) {
-        $kohortRefPaymentMethods[] = Tools::getValue($key);
-        continue;
-      }
-
       Configuration::updateValue($key, Tools::getValue($key));
     }
 
-    Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize($kohortRefPaymentMethods));
-
     $this->context->controller->confirmations[] = $this->l('Settings updated');
-  }
-
-  /**
-   * Return payment options available for PS 1.7+
-   *
-   * @param array Hook parameters
-   *
-   * @return array|null
-   */
-  public function hookPaymentOptions($params)
-  {
-    $cart = $params['cart'];
-
-    if (!Configuration::get('KOHORTPAY_LIVE_MODE')) {
-      return;
-    }
-
-    if (!Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
-      return;
-    }
-
-    $cartCurrencyCode = (new Currency($cart->id_currency))->iso_code;
-    if (!in_array($cartCurrencyCode, $this->limited_currencies)) {
-      return;
-    }
-
-    if ($cart->getOrderTotal() < Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')) {
-      return;
-    }
-
-    $option = new PaymentOption();
-    $option
-      ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/kohortpay_logo_payment.png'))
-      ->setCallToActionText($this->l('Pay, share and save up to 20% off'))
-      ->setAdditionalInformation($this->l('Save money and so does your friend, from the first friend you invite.'))
-      ->setAction($this->context->link->getModuleLink($this->name, 'redirect', [], true));
-
-    return [$option];
   }
 
   /*
@@ -442,19 +303,6 @@ class Kohortpay extends PaymentModule
           $order->total_paid .
           ') is less than minimum amount : ' .
           Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'),
-        $order->id,
-        2
-      );
-      return;
-    }
-
-    $orderPaymentMethod = $order->module;
-    if (!in_array($orderPaymentMethod, $this->getKohortRefPaymentMethods())) {
-      $this->LogOrderMessage(
-        'Order payment method (' .
-          $orderPaymentMethod .
-          ') is not enabled for KohortRef. Supported payment methods : ' .
-          implode(', ', $this->getKohortRefPaymentMethods()),
         $order->id,
         2
       );
@@ -623,45 +471,6 @@ class Kohortpay extends PaymentModule
   }
 
   /**
-   * Add a new order state
-   */
-  protected function addOrderState($stateName, $color = '#01B887')
-  {
-    // check if order state exist
-    $states = OrderState::getOrderStates((int) $this->context->language->id);
-    foreach ($states as $state) {
-      if (in_array($stateName, $state)) {
-        return true;
-      }
-    }
-
-    // create new order state
-    $orderState = new OrderState();
-    $orderState->name = [];
-    foreach (Language::getLanguages() as $language) {
-      $orderState->name[$language['id_lang']] = $stateName;
-    }
-    $orderState->send_email = false;
-    $orderState->color = $color;
-    $orderState->hidden = false;
-    $orderState->delivery = false;
-    $orderState->logable = false;
-    $orderState->invoice = false;
-
-    if ($orderState->add()) {
-      if ($stateName == $this->l('Cashback to process')) {
-        Configuration::updateValue('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS', (int) $orderState->id);
-      }
-      if ($stateName == $this->l('Cashback processed')) {
-        Configuration::updateValue('KOHORTPAY_CASHBACK_PROCESSED_STATUS', (int) $orderState->id);
-      }
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
    * Get carrier name from id.
    */
   protected function getCarrierName($id_carrier)
@@ -706,41 +515,6 @@ class Kohortpay extends PaymentModule
     }
 
     PrestaShopLogger::addLog($message, $severity, null, 'Order', (int) $orderId, true);
-  }
-
-  /**
-   * Get active payment methods list.
-   */
-  protected function getActivePaymentMethodsList()
-  {
-    $activePaymentMethodList = [];
-    foreach (Module::getPaymentModules() as $paymentModule) {
-      if ($paymentModule['name'] == 'kohortpay') {
-        continue;
-      }
-
-      $module = Module::getInstanceByName($paymentModule['name']);
-      if (Validate::isLoadedObject($module) && $module->active) {
-        $activePaymentMethodList[] = [
-          'id' => $paymentModule['name'],
-          'name' => $module->displayName,
-          'val' => $paymentModule['name'],
-        ];
-      }
-    }
-    return $activePaymentMethodList;
-  }
-
-  /**
-   * Get active payment methods list.
-   */
-  protected function getKohortRefPaymentMethods()
-  {
-    $paymentMethods = Configuration::get('KOHORTREF_PAYMENT_METHODS', serialize([]));
-    if (!$paymentMethods) {
-      return [];
-    }
-    return unserialize($paymentMethods);
   }
 
   /**
