@@ -39,6 +39,6 @@ $_MODULE['<{kohortpay}prestashop>kohortpay_02d389bba93904bf87a2fee5f4e85db5'] = 
 $_MODULE['<{kohortpay}prestashop>kohortpay_d1ce0bed368043c23eec9efd952a7a9e'] = 'Le code de parrainage est inconnu ou n\'a pas été trouvé.';
 $_MODULE['<{kohortpay}prestashop>kohortpay_a308f8881f0b038aa841882fdec3c439'] = 'Le code de parrainage est invalide.';
 $_MODULE['<{kohortpay}prestashop>kohortpay_fbeace720d13fef810b56c206493f283'] = 'Réglez votre achat d’un minimum de ';
-$_MODULE['<{kohortpay}prestashop>kohortpay_c76e552c109bc161817d26ca4364cb20'] = ' par carte bancaire pour générer un code de parrainage et bénéficier de cashback sur votre commande en la partageant.';
+$_MODULE['<{kohortpay}prestashop>kohortpay_c76e552c109bc161817d26ca4364cb20'] = ' par carte bancaire pour générer un code de parrainage, le partager et bénéficier d’un cashback.';
 $_MODULE['<{kohortpay}prestashop>confirmation_42d04f724205be12e1b61fbda767adfb'] = 'Paiement a été autorisé par KohortPay';
 $_MODULE['<{kohortpay}prestashop>error_a25c753ee3e4be15ec0daa5a40deb7b8'] = ' Une erreur s\'est produite';

@@ -22,9 +22,6 @@
  * @license   https://opensource.org/licenses/MIT The MIT License
  */
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\ClientException;
-
 class CartController extends CartControllerCore
 {
   /**
@@ -57,7 +54,7 @@ class CartController extends CartControllerCore
       'amount' => round($this->context->cart->getOrderTotal() * 100),
     ];
 
-    $client = new Client();
+    $client = new GuzzleHttp\Client();
     try {
       $response = $client->post('https://api.kohortpay.com/payment-groups/' . $code . '/validate', [
         'headers' => [
@@ -74,7 +71,7 @@ class CartController extends CartControllerCore
       $this->saveReferralDetailsInDB($code, $cashbackType, $cashbackValue);
 
       return true;
-    } catch (ClientException $e) {
+    } catch (GuzzleHttp\Exception\ClientException $e) {
       if ($e->hasResponse()) {
         $errorResponse = json_decode(
           $e
@@ -124,4 +121,67 @@ class CartController extends CartControllerCore
       ]);
     }
   }
+
+  /** Override to add actionPresentCart for old Prestashop version */
+  /*public function initContent()
+  {
+    parent::initContent();
+
+    $presenter = new PrestaShop\PrestaShop\Adapter\Presenter\Cart\CartPresenter();
+    $presented_cart = $presenter->present($this->context->cart, $shouldSeparateGifts = true);
+
+    Hook::exec('actionPresentCart', ['presentedCart' => &$presented_cart]);
+
+    $this->context->smarty->assign([
+      'cart' => $presented_cart,
+      'static_token' => Tools::getToken(false),
+    ]);
+  }
+
+  public function displayAjaxUpdate()
+  {
+    if (Configuration::isCatalogMode()) {
+      return;
+    }
+
+    $productsInCart = $this->context->cart->getProducts();
+    $updatedProducts = array_filter($productsInCart, [$this, 'productInCartMatchesCriteria']);
+    $updatedProduct = reset($updatedProducts);
+    $productQuantity = $updatedProduct['quantity'];
+
+    if (!$this->errors) {
+      $cartPresenter = new PrestaShop\PrestaShop\Adapter\Presenter\Cart\CartPresenter();
+      $presentedCart = $cartPresenter->present($this->context->cart);
+      Hook::exec('actionPresentCart', ['presentedCart' => &$presentedCart]);
+
+      // filter product output
+      $presentedCart['products'] = $this->get('prestashop.core.filter.front_end_object.product_collection')->filter(
+        $presentedCart['products']
+      );
+
+      $this->ajaxRender(
+        Tools::jsonEncode([
+          'success' => true,
+          'id_product' => $this->id_product,
+          'id_product_attribute' => $this->id_product_attribute,
+          'id_customization' => $this->customization_id,
+          'quantity' => $productQuantity,
+          'cart' => $presentedCart,
+          'errors' => empty($this->updateOperationError) ? '' : reset($this->updateOperationError),
+        ])
+      );
+
+      return;
+    } else {
+      $this->ajaxRender(
+        Tools::jsonEncode([
+          'hasError' => true,
+          'errors' => $this->errors,
+          'quantity' => $productQuantity,
+        ])
+      );
+
+      return;
+    }
+  }*/
 }
