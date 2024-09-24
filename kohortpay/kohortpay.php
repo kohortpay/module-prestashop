@@ -46,7 +46,7 @@ class Kohortpay extends PaymentModule
 
     $this->displayName = $this->l('KohortPay');
     $this->description = $this->l(
-      'Social payment method : Pay less, together. Turn your customer into your brand advocates.'
+      'New generation of referral program : Pay less, together. Turn your customer into your brand advocates.'
     );
 
     $this->confirmUninstall = $this->l('Are you sure you want to uninstall KohortPay ?');

@@ -3,7 +3,7 @@
 	<name>kohortpay</name>
 	<displayName><![CDATA[KohortPay]]></displayName>
 	<version><![CDATA[4]]></version>
-	<description><![CDATA[Social payment method : Pay less, together. Turn your customer into your brand advocates.]]></description>
+	<description><![CDATA[New generation of referral program : Pay less, together. Turn your customer into your brand advocates.]]></description>
 	<author><![CDATA[KohortPay]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
 	<is_configurable>1</is_configurable>
