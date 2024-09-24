@@ -70,7 +70,6 @@ class Kohortpay extends PaymentModule
       return false;
     }
 
-    Configuration::updateValue('KOHORTPAY_LIVE_MODE', false);
     Configuration::updateValue('KOHORTREF_LIVE_MODE', false);
     Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', '');
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
@@ -78,7 +77,7 @@ class Kohortpay extends PaymentModule
 
     include dirname(__FILE__) . '/sql/install.php';
 
-    $hooks = ['paymentOptions', 'actionPaymentConfirmation', 'actionPresentCart'];
+    $hooks = ['actionPaymentConfirmation', 'actionPresentCart'];
 
     return parent::install() && $this->registerHook($hooks);
   }
@@ -139,67 +138,13 @@ class Kohortpay extends PaymentModule
       'id_language' => $this->context->language->id,
     ];
 
-    return $helper->generateForm([$this->getConfigForm(), $this->getConfigFormRef()]);
+    return $helper->generateForm([$this->getConfigForm()]);
   }
 
   /**
    * Create the structure of your form.
    */
   protected function getConfigForm()
-  {
-    return [
-      'form' => [
-        'legend' => [
-          'title' => $this->l('Referral program settings (with KohortPay payment method)'),
-          'icon' => 'icon-cogs',
-        ],
-        'input' => [
-          [
-            'type' => 'switch',
-            'label' => $this->l('Activate'),
-            'name' => 'KOHORTPAY_LIVE_MODE',
-            'is_bool' => true,
-            'desc' => $this->l('Must be enabled to display KohortPay in your checkout page.'),
-            'values' => [
-              [
-                'id' => 'active_on',
-                'value' => true,
-                'label' => $this->l('Enabled'),
-              ],
-              [
-                'id' => 'active_off',
-                'value' => false,
-                'label' => $this->l('Disabled'),
-              ],
-            ],
-          ],
-          [
-            'type' => 'password',
-            'name' => 'KOHORTPAY_API_SECRET_KEY',
-            'class' => 'fixed-width-xl',
-            'label' => $this->l('API Secret Key'),
-            'desc' => $this->l('Found in Dashboard > Developer settings. Start with sk_ or sk_test (for test mode).'),
-          ],
-          [
-            'type' => 'text',
-            'name' => 'KOHORTPAY_MINIMUM_AMOUNT',
-            'class' => 'fixed-width-md',
-            'prefix' => $this->context->currency->iso_code,
-            'label' => $this->l('Minimum amount'),
-            'desc' => $this->l('Minimum total order amount to display KohortPay in your checkout page.'),
-          ],
-        ],
-        'submit' => [
-          'title' => $this->l('Save'),
-        ],
-      ],
-    ];
-  }
-
-  /**
-   * Create the structure of your form.
-   */
-  protected function getConfigFormRef()
   {
     return [
       'form' => [
@@ -275,7 +220,6 @@ class Kohortpay extends PaymentModule
   protected function getConfigFormValues()
   {
     $configFormValues = [
-      'KOHORTPAY_LIVE_MODE' => Configuration::get('KOHORTPAY_LIVE_MODE', false),
       'KOHORTREF_LIVE_MODE' => Configuration::get('KOHORTREF_LIVE_MODE', false),
       'KOHORTPAY_DEBUG_MODE' => Configuration::get('KOHORTPAY_DEBUG_MODE', false),
       'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
@@ -292,12 +236,6 @@ class Kohortpay extends PaymentModule
   {
     $form_values = $this->getConfigFormValues();
 
-    // KOHORTPAY_LIVE_MODE & KOHORTREF_LIVE_MODE could not be enabled at the same time
-    if (Tools::getValue('KOHORTPAY_LIVE_MODE') && Tools::getValue('KOHORTREF_LIVE_MODE')) {
-      $this->context->controller->errors[] = $this->l('Both mode could not be enabled at the same time.');
-      return false;
-    }
-
     // Validate KOHORTPAY_MINIMUM_AMOUNT field is a valid price
     if (!Validate::isPrice(Tools::getValue('KOHORTPAY_MINIMUM_AMOUNT'))) {
       $this->context->controller->errors[] = $this->l('Invalid value for minimum amount.');
@@ -306,7 +244,7 @@ class Kohortpay extends PaymentModule
 
     // KOHORTPAY_API_SECRET_KEY is required if KohortPay or KohortRef live mode is enabled
     if (
-      (Tools::getValue('KOHORTPAY_LIVE_MODE') || Tools::getValue('KOHORTREF_LIVE_MODE')) &&
+      Tools::getValue('KOHORTREF_LIVE_MODE') &&
       !Tools::getValue('KOHORTPAY_API_SECRET_KEY') &&
       !Configuration::get('KOHORTPAY_API_SECRET_KEY')
     ) {
@@ -326,44 +264,6 @@ class Kohortpay extends PaymentModule
     }
 
     $this->context->controller->confirmations[] = $this->l('Settings updated');
-  }
-
-  /**
-   * Return payment options available for PS 1.7+
-   *
-   * @param array Hook parameters
-   *
-   * @return array|null
-   */
-  public function hookPaymentOptions($params)
-  {
-    $cart = $params['cart'];
-
-    if (!Configuration::get('KOHORTPAY_LIVE_MODE')) {
-      return;
-    }
-
-    if (!Configuration::get('KOHORTPAY_API_SECRET_KEY')) {
-      return;
-    }
-
-    $cartCurrencyCode = (new Currency($cart->id_currency))->iso_code;
-    if (!in_array($cartCurrencyCode, $this->limited_currencies)) {
-      return;
-    }
-
-    if ($cart->getOrderTotal() < Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')) {
-      return;
-    }
-
-    $option = new PaymentOption();
-    $option
-      ->setLogo(Media::getMediaPath(_PS_MODULE_DIR_ . $this->name . '/views/img/kohortpay_logo_payment.png'))
-      ->setCallToActionText($this->l('Pay, share and save up to 20% off'))
-      ->setAdditionalInformation($this->l('Save money and so does your friend, from the first friend you invite.'))
-      ->setAction($this->context->link->getModuleLink($this->name, 'redirect', [], true));
-
-    return [$option];
   }
 
   /*
