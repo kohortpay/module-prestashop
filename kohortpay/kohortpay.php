@@ -73,7 +73,6 @@ class Kohortpay extends PaymentModule
     Configuration::updateValue('KOHORTPAY_LIVE_MODE', false);
     Configuration::updateValue('KOHORTREF_LIVE_MODE', false);
     Configuration::updateValue('KOHORTPAY_API_SECRET_KEY', '');
-    Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize([]));
     Configuration::updateValue('KOHORTPAY_MINIMUM_AMOUNT', 30);
     Configuration::updateValue('KOHORTPAY_DEBUG_MODE', false);
     Configuration::updateValue('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS', 0);
@@ -94,7 +93,6 @@ class Kohortpay extends PaymentModule
     Configuration::deleteByName('KOHORTPAY_LIVE_MODE');
     Configuration::deleteByName('KOHORTREF_LIVE_MODE');
     Configuration::deleteByName('KOHORTPAY_API_SECRET_KEY');
-    Configuration::deleteByName('KOHORTREF_PAYMENT_METHODS');
     Configuration::deleteByName('KOHORTPAY_MINIMUM_AMOUNT');
     Configuration::deleteByName('KOHORTPAY_DEBUG_MODE');
     Configuration::deleteByName('KOHORTPAY_CASHBACK_TO_PROCESS_STATUS');
@@ -254,18 +252,6 @@ class Kohortpay extends PaymentModule
             'desc' => $this->l('Minimum total order amount to refer.'),
           ],
           [
-            'type' => 'checkbox',
-            'label' => $this->l('Available payment methods'),
-            'name' => 'KOHORTREF_PAYMENT_METHODS',
-            'desc' => $this->l('Select the payment methods you want to enable to refer.'),
-            // Static values
-            'values' => [
-              'query' => $this->getActivePaymentMethodsList(),
-              'id' => 'id',
-              'name' => 'name',
-            ],
-          ],
-          [
             'type' => 'switch',
             'label' => $this->l('Debug mode'),
             'name' => 'KOHORTPAY_DEBUG_MODE',
@@ -304,13 +290,6 @@ class Kohortpay extends PaymentModule
       'KOHORTPAY_API_SECRET_KEY' => Configuration::get('KOHORTPAY_API_SECRET_KEY', null),
       'KOHORTPAY_MINIMUM_AMOUNT' => Configuration::get('KOHORTPAY_MINIMUM_AMOUNT', 30),
     ];
-
-    foreach ($this->getActivePaymentMethodsList() as $paymentMethod) {
-      $configFormValues['KOHORTREF_PAYMENT_METHODS_' . $paymentMethod['id']] = in_array(
-        $paymentMethod['id'],
-        $this->getKohortRefPaymentMethods()
-      );
-    }
 
     return $configFormValues;
   }
@@ -352,16 +331,8 @@ class Kohortpay extends PaymentModule
         continue;
       }
 
-      // If $key includes KOHORTREF_PAYMENT_METHODS_ then add to $kohortRefPaymentMethods
-      if (strpos($key, 'KOHORTREF_PAYMENT_METHODS_') !== false && Tools::getValue($key)) {
-        $kohortRefPaymentMethods[] = Tools::getValue($key);
-        continue;
-      }
-
       Configuration::updateValue($key, Tools::getValue($key));
     }
-
-    Configuration::updateValue('KOHORTREF_PAYMENT_METHODS', serialize($kohortRefPaymentMethods));
 
     $this->context->controller->confirmations[] = $this->l('Settings updated');
   }
@@ -442,19 +413,6 @@ class Kohortpay extends PaymentModule
           $order->total_paid .
           ') is less than minimum amount : ' .
           Configuration::get('KOHORTPAY_MINIMUM_AMOUNT'),
-        $order->id,
-        2
-      );
-      return;
-    }
-
-    $orderPaymentMethod = $order->module;
-    if (!in_array($orderPaymentMethod, $this->getKohortRefPaymentMethods())) {
-      $this->LogOrderMessage(
-        'Order payment method (' .
-          $orderPaymentMethod .
-          ') is not enabled for KohortRef. Supported payment methods : ' .
-          implode(', ', $this->getKohortRefPaymentMethods()),
         $order->id,
         2
       );
@@ -706,41 +664,6 @@ class Kohortpay extends PaymentModule
     }
 
     PrestaShopLogger::addLog($message, $severity, null, 'Order', (int) $orderId, true);
-  }
-
-  /**
-   * Get active payment methods list.
-   */
-  protected function getActivePaymentMethodsList()
-  {
-    $activePaymentMethodList = [];
-    foreach (Module::getPaymentModules() as $paymentModule) {
-      if ($paymentModule['name'] == 'kohortpay') {
-        continue;
-      }
-
-      $module = Module::getInstanceByName($paymentModule['name']);
-      if (Validate::isLoadedObject($module) && $module->active) {
-        $activePaymentMethodList[] = [
-          'id' => $paymentModule['name'],
-          'name' => $module->displayName,
-          'val' => $paymentModule['name'],
-        ];
-      }
-    }
-    return $activePaymentMethodList;
-  }
-
-  /**
-   * Get active payment methods list.
-   */
-  protected function getKohortRefPaymentMethods()
-  {
-    $paymentMethods = Configuration::get('KOHORTREF_PAYMENT_METHODS', serialize([]));
-    if (!$paymentMethods) {
-      return [];
-    }
-    return unserialize($paymentMethods);
   }
 
   /**
