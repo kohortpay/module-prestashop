@@ -22,7 +22,6 @@
  * @license   https://opensource.org/licenses/MIT The MIT License
  */
 
-use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 
@@ -38,7 +37,7 @@ class Kohortpay extends PaymentModule
   {
     $this->name = 'kohortpay';
     $this->tab = 'payments_gateways';
-    $this->version = '1.0.4';
+    $this->version = '1.2.0';
     $this->author = 'KohortPay';
     $this->need_instance = 0;
     $this->bootstrap = true;
