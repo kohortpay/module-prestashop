@@ -396,9 +396,17 @@ class Kohortpay extends PaymentModule
     }
     // Discounts
     foreach ($cart->getCartRules() as $cartRule) {
+      $discountAmount = $this->cleanPrice($cartRule['value_real']);
+
+      // Check if the discount is a gift product
+      if ($cartRule['gift_product']) {
+        $giftProduct = new Product($cartRule['gift_product']);
+        $discountAmount = $this->cleanPrice($giftProduct->getPrice(true, $cartRule['gift_product_attribute']));
+      }
+
       $json['lineItems'][] = [
         'name' => $this->cleanString($cartRule['name']),
-        'price' => $this->cleanPrice($cartRule['value_real']) * -1,
+        'price' => $discountAmount * -1,
         'quantity' => 1,
         'type' => 'DISCOUNT',
       ];
@@ -411,8 +419,7 @@ class Kohortpay extends PaymentModule
       'type' => 'SHIPPING',
     ];
 
-    // @TODO : Add transaction_id to payment_client_reference_id
-    //$transaction_id = OrderPayment::getByOrderReference($order->reference)->transaction_id;
+    // Reference ID
     $json['client_reference_id'] = (string) $order->id;
     $json['payment_client_reference_id'] = (string) $order->id;
     $shareId = $this->getShareIdByIdCart($cart->id);
