@@ -76,7 +76,7 @@ class Kohortpay extends PaymentModule
 
     include dirname(__FILE__) . '/sql/install.php';
 
-    $hooks = ['actionPaymentConfirmation', 'actionPresentCart'];
+    $hooks = ['actionPaymentConfirmation', 'actionPresentCart', 'displayOrderConfirmation'];
 
     return parent::install() && $this->registerHook($hooks);
   }
@@ -567,5 +567,23 @@ class Kohortpay extends PaymentModule
       $this->l(' with a credit card to generate a referral code and get cashback on your order by sharing it.');
 
     return $errorMessage . ' ' . $defaultSuffixErrorMessage;
+  }
+
+  /**
+   * Display modal if order total is greater than minimum amount
+   */
+  public function hookDisplayOrderConfirmation($params)
+  {
+    $order = $params['order'];
+    $orderId = $order->id;
+    $orderTotal = $order->total_paid;
+
+    if ($orderTotal > Configuration::get('KOHORTPAY_MINIMUM_AMOUNT')) {
+      $this->context->smarty->assign([
+        'orderId' => $orderId,
+      ]);
+
+      return $this->display(__FILE__, 'views/templates/hook/kohortpay.tpl');
+    }
   }
 }
