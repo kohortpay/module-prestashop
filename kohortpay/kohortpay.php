@@ -37,7 +37,7 @@ class Kohortpay extends PaymentModule
   {
     $this->name = 'kohortpay';
     $this->tab = 'payments_gateways';
-    $this->version = '1.2.0';
+    $this->version = '1.3.0';
     $this->author = 'KohortPay';
     $this->need_instance = 0;
     $this->bootstrap = true;
@@ -53,7 +53,7 @@ class Kohortpay extends PaymentModule
 
     $this->limited_currencies = ['EUR', 'USD'];
 
-    $this->ps_versions_compliancy = ['min' => '1.7', 'max' => _PS_VERSION_];
+    $this->ps_versions_compliancy = ['min' => '1.6', 'max' => _PS_VERSION_];
 
     $this->module_key = 'f3f8c71200e9d7a10a7bf766873bde81';
   }
@@ -387,11 +387,7 @@ class Kohortpay extends PaymentModule
         'price' => $this->cleanPrice($product['price_wt']),
         'quantity' => $product['cart_quantity'],
         'type' => 'PRODUCT',
-        'image_url' => $this->context->link->getImageLink(
-          $product['link_rewrite'],
-          $product['id_image'],
-          ImageType::getFormattedName('home')
-        ),
+        'image_url' => $this->context->link->getImageLink($product['link_rewrite'], $product['id_image']),
       ];
     }
     // Discounts
@@ -402,6 +398,10 @@ class Kohortpay extends PaymentModule
       if ($cartRule['gift_product']) {
         $giftProduct = new Product($cartRule['gift_product']);
         $discountAmount = $this->cleanPrice($giftProduct->getPrice(true, $cartRule['gift_product_attribute']));
+      }
+
+      if ($discountAmount <= 0) {
+        continue;
       }
 
       $json['lineItems'][] = [
