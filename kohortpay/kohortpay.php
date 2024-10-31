@@ -387,11 +387,7 @@ class Kohortpay extends PaymentModule
         'price' => $this->cleanPrice($product['price_wt']),
         'quantity' => $product['cart_quantity'],
         'type' => 'PRODUCT',
-        'image_url' => $this->context->link->getImageLink(
-          $product['link_rewrite'],
-          $product['id_image'],
-          ImageType::getFormattedName('home')
-        ),
+        'image_url' => $this->context->link->getImageLink($product['link_rewrite'], $product['id_image']),
       ];
     }
     // Discounts
@@ -402,6 +398,10 @@ class Kohortpay extends PaymentModule
       if ($cartRule['gift_product']) {
         $giftProduct = new Product($cartRule['gift_product']);
         $discountAmount = $this->cleanPrice($giftProduct->getPrice(true, $cartRule['gift_product_attribute']));
+      }
+
+      if ($discountAmount <= 0) {
+        continue;
       }
 
       $json['lineItems'][] = [
