@@ -76,7 +76,7 @@ class Kohortpay extends PaymentModule
 
     include dirname(__FILE__) . '/sql/install.php';
 
-    $hooks = ['actionPaymentConfirmation', 'actionPresentCart', 'displayOrderConfirmation'];
+    $hooks = ['actionPaymentConfirmation', 'actionPresentCart', 'displayOrderConfirmation', 'displayReferralCode'];
 
     return parent::install() && $this->registerHook($hooks);
   }
@@ -585,5 +585,35 @@ class Kohortpay extends PaymentModule
 
       return $this->display(__FILE__, 'views/templates/hook/kohortpay.tpl');
     }
+  }
+
+  public function hookDisplayReferralCode()
+  {
+    $sql = new DbQuery();
+    $sql->select('cashback_value, cashback_type');
+    $sql->from('referral_cart');
+    $sql->where('id_cart = ' . (int) $this->context->cart->id);
+
+    $result = Db::getInstance()->getRow($sql);
+
+    if ($result) {
+      $cashbackType = $result['cashback_type'];
+      $cashbackValue = $result['cashback_value'];
+
+      $cashbackAmount = 0;
+      if ($cashbackType && $cashbackValue) {
+        if ($cashbackType == 'PERCENTAGE') {
+          $cashbackAmount = ($this->context->cart->getOrderTotal() * $cashbackValue) / 100;
+        } else {
+          $cashbackAmount = $cashbackValue;
+        }
+      }
+
+      if ($cashbackAmount !== 0) {
+        $this->context->smarty->assign(['cashbackAmount' => Tools::displayPrice($cashbackAmount)]);
+      }
+    }
+
+    return $this->display(__FILE__, 'views/templates/hook/referral-code.tpl');
   }
 }
