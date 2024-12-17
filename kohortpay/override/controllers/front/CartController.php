@@ -34,7 +34,13 @@ class CartController extends CartControllerCore
       return;
     }
 
-    if (Tools::getIsset('addDiscount')) {
+    if (Tools::getIsset('applyReferralCode')) {
+      $referralCode = Tools::getValue('referral_code');
+      $this->validateReferralCode($referralCode);
+      return;
+    }
+
+    if (Tools::getIsset('addDiscount') || Tools::getIsset('submitDiscount')) {
       $code = trim(Tools::getValue('discount_name'));
       if (substr($code, 0, 3) === 'KHT') {
         $this->validateReferralCode($code);
